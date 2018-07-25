@@ -7,6 +7,7 @@
 
 #include "scalar.hh"
 #include "extents.hh"
+#include "factors.hh"
 #include "index.hh"
 #include "array.hh"
 
