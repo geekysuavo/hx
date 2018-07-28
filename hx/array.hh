@@ -28,6 +28,7 @@ public:
   static constexpr std::size_t ndims = sizeof...(InnerDims) + 1;
 
   /* Type information:
+   *   base_type: type of each array element.
    *   inner: type of the (ndims-1)-dimensional sub-array.
    *   inner_type: array data type of the inner sub-array.
    *   type: data type of the current array dimension/layer.
@@ -35,11 +36,12 @@ public:
    *   shape_type: type enapsulation of the array extents.
    *  @extents: static member variable of type shape_type.
    */
-  using inner = array<Type, InnerDims...>;
+  using base_type = Type;
+  using inner = hx::array<Type, InnerDims...>;
   using inner_type = typename inner::type;
   using type = inner_type[OuterDim];
-  using index_type = index<OuterDim, InnerDims...>;
-  using shape_type = extents<OuterDim, InnerDims...>;
+  using index_type = hx::index<OuterDim, InnerDims...>;
+  using shape_type = hx::extents<OuterDim, InnerDims...>;
   static constexpr auto extents = shape_type();
 
   /* shape<idx>
@@ -103,9 +105,10 @@ public:
   static constexpr std::size_t ndims = 1;
 
   /* Type information: */
+  using base_type = Type;
   using type = Type[Dim];
-  using index_type = index<Dim>;
-  using shape_type = extents<Dim>;
+  using index_type = hx::index<Dim>;
+  using shape_type = hx::extents<Dim>;
   static constexpr auto extents = shape_type();
 
   /* shape<0> */

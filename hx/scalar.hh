@@ -6,8 +6,9 @@
 #pragma once
 
 #include <cmath>
-#include <cstddef>
 #include <iostream>
+
+#include "trig.hh"
 
 namespace hx {
 
@@ -39,6 +40,22 @@ public:
    */
   constexpr scalar (const subscalar& re, const subscalar& im)
    : real(re), imag(im) {}
+
+  /* scalar(scalar<SubDim>)
+   *
+   * Promotion and copy constructor.
+   */
+  template<std::size_t SubDim, typename = std::enable_if_t<(SubDim <= Dim)>>
+  constexpr scalar (const scalar<SubDim>& s) {
+    if constexpr (SubDim == Dim) {
+      real = s.real;
+      imag = s.imag;
+    }
+    else {
+      real = subscalar(s);
+      imag = subscalar();
+    }
+  }
 
   /* is_correct_size: check that a parameter pack has size 2^Dim */
   template<typename... Cs>
@@ -98,6 +115,26 @@ public:
     return scalar(-real, -imag);
   }
 
+  /* operator+=()
+   *
+   * Combined addition-assignment operator.
+   */
+  constexpr scalar& operator+= (const scalar& b) {
+    real += b.real;
+    imag += b.imag;
+    return *this;
+  }
+
+  /* operator-=()
+   *
+   * Combined subtraction-assignment operator.
+   */
+  constexpr scalar& operator-= (const scalar& b) {
+    real -= b.real;
+    imag -= b.imag;
+    return *this;
+  }
+
   /* operator+()
    *
    * Binary addition operator.
@@ -123,6 +160,14 @@ public:
   constexpr friend scalar operator* (scalar lhs, const scalar& rhs) {
     return scalar(lhs.real * rhs.real - lhs.imag * rhs.imag,
                   lhs.real * rhs.imag + lhs.imag * rhs.real);
+  }
+
+  /* operator*(double, scalar)
+   *
+   * Binary scaling operator.
+   */
+  constexpr friend scalar operator* (double lhs, const scalar& rhs) {
+    return scalar(lhs * rhs.real, lhs * rhs.imag);
   }
 
   /* operator<<()
@@ -169,6 +214,14 @@ public:
     return scalar(subscalar(), subscalar::R());
   }
 
+  /* scalar::exp()
+   *
+   * Return the multicomplex number exp(scalar::I() * theta).
+   */
+  static inline constexpr scalar exp (double theta) {
+    return hx::cos(theta) * R() + hx::sin(theta) * I();
+  }
+
 private:
   /* load_coeffs<i,n,C,Cs...>()
    *
@@ -199,15 +252,6 @@ public:
   constexpr scalar (double re) : real(re) {}
   constexpr scalar () : scalar(0) {}
 
-  /* operator double()
-   *
-   * Implicit conversion operator for casting scalar<0> into
-   * double-precision floats.
-   */
-  operator double() const {
-    return real;
-  }
-
   /* operator[]() */
   constexpr double& operator[] (std::size_t idx) {
     return real;
@@ -216,6 +260,18 @@ public:
   /* operator-() */
   constexpr scalar operator- () const {
     return -real;
+  }
+
+  /* operator+=() */
+  constexpr scalar& operator+= (const scalar& b) {
+    real += b.real;
+    return *this;
+  }
+
+  /* operator-=() */
+  constexpr scalar& operator-= (const scalar& b) {
+    real -= b.real;
+    return *this;
   }
 
   /* operator+() */
@@ -231,6 +287,15 @@ public:
   /* operator*() */
   constexpr friend scalar operator* (scalar lhs, const scalar& rhs) {
     return lhs.real * rhs.real;
+  }
+
+  /* operator<<()
+   *
+   * Output stream operator.
+   */
+  friend std::ostream& operator<< (std::ostream& os, const scalar& obj) {
+    os << obj.real;
+    return os;
   }
 
   /* scalar<0>::R()
@@ -253,7 +318,7 @@ scalar(const scalar<Dim>& a, const scalar<Dim>& b) -> scalar<Dim + 1>;
  * element of a scalar with specified dimensionality.
  */
 template<std::size_t Dim>
-inline constexpr auto I = scalar<Dim>::I();
+inline constexpr auto I = hx::scalar<Dim>::I();
 
 /* namespace hx */ }
 

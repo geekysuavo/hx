@@ -28,7 +28,7 @@ public:
    *
    * Constructor taking its Sizes... parameter pack from an hx::extents.
    */
-  constexpr index (extents<Sizes...> ext) {}
+  constexpr index (hx::extents<Sizes...> ext) {}
 
   /* operator[]()
    *
