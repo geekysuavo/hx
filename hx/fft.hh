@@ -8,7 +8,76 @@
 #include "extents.hh"
 #include "trig.hh"
 
+#include <array>
+
 namespace hx {
+
+/* hx::fft_shuffle<Type,N1,N2>
+ *
+ * Constexpr-compatible class encoding the set of swap operations
+ * required to transpose an N1-by-N2 matrix into an N2-by-N1
+ * matrix in-place, i.e. to move from column-major to row-major.
+ *
+ * Used by general stages of fft_block to shuffle indices.
+ */
+template<typename Type, std::size_t N1, std::size_t N2>
+class fft_shuffle {
+public:
+  /* fft_shuffle()
+   *
+   * Default constructor.
+   */
+  constexpr fft_shuffle () : swaps(), n_swaps(0) {
+    /* initialize an array to direct the swap-finding loop. */
+    std::size_t A[N] = {};
+    for (std::size_t i = 0; i < N1; i++)
+      for (std::size_t j = 0; j < N2; j++)
+        A[i * N2 + j] = (j * N1 + i);
+
+    /* loop to find each of the necessary swap operations. */
+    for (std::size_t i = 0; i < N; i++) {
+      /* skip if no sort is necessary. */
+      if (A[i] == i)
+        continue;
+
+      /* find the other index to swap with. */
+      std::size_t j = i + 1;
+      while (j < N && A[j] != i) j++;
+
+      /* store the identified swap indices. */
+      swaps[n_swaps][0] = i;
+      swaps[n_swaps][1] = j;
+      n_swaps++;
+
+      /* update the temporary array. */
+      A[j] = A[i];
+    }
+  }
+
+  /* operator()()
+   *
+   * Apply the set of swaps determined in the constructor.
+   */
+  constexpr void operator() (Type* x) const {
+    /* apply the swaps. */
+    Type swp;
+    for (std::size_t i = 0; i < n_swaps; i++) {
+      swp = x[swaps[i][0]];
+      x[swaps[i][0]] = x[swaps[i][1]];
+      x[swaps[i][1]] = swp;
+    }
+  }
+
+private:
+  /* Internal state:
+   *  @N: total number of elements in the target array.
+   *  @swaps: array of pairs of indices to swap.
+   *  @n_swaps: number of swapped index pairs.
+   */
+  static constexpr std::size_t N = N1 * N2;
+  std::size_t swaps[N][2];
+  std::size_t n_swaps;
+};
 
 /* hx::fft_block<Type,Dim,N,Stride>
  *
@@ -27,11 +96,14 @@ public:
     for (std::size_t i = 0; i < N1; i++)
       blk2(x + i);
 
-    /* FIXME: use recurrence relation in the twiddle stage!!! */
-    for (std::size_t n1 = 0; n1 < N1; n1++) {
+    /* apply twiddle factors using trigonometric recurrences. */
+    for (std::size_t n1 = 1; n1 < N1; n1++) {
+      const Type dw = W[n1];
+      Type w = Type::R();
+
       for (std::size_t k2 = 0; k2 < N2; k2++) {
-        auto w = Type{hx::scalar<Dim>::exp(phi * double(n1 * k2))};
         x[n1 + N1 * k2] = x[n1 + N1 * k2] * w;
+        w -= dw * w;
       }
     }
 
@@ -39,7 +111,8 @@ public:
     for (std::size_t i = 0; i < N2; i++)
       blk1(x + N1 * i);
 
-    /* FIXME: shuffle elements into the proper order!!! */
+    /* apply the shuffle operator. */
+    shuf(x);
   }
 
 private:
@@ -58,6 +131,39 @@ private:
     return F;
   }
 
+  /* twiddles_elem()
+   *
+   * FIXME
+   */
+  template<std::size_t n>
+  static constexpr auto twiddles_elem () {
+    constexpr double phi = -double(2 * n) * hx::pi / double(N);
+    constexpr double sp2 = hx::sin(phi / 2);
+    constexpr double alpha = 2 * sp2 * sp2;
+    constexpr double beta = hx::sin(phi);
+
+    return Type{alpha * hx::scalar<Dim>::R() - beta * hx::scalar<Dim>::I()};
+  }
+
+  /* twiddles_impl()
+   *
+   * FIXME
+   */
+  template<std::size_t... Ids>
+  static constexpr auto twiddles_impl (std::index_sequence<Ids...> ids)
+  -> std::array<Type, sizeof...(Ids)> {
+    return {{ twiddles_elem<Ids>()... }};
+  }
+
+  /* twiddles()
+   *
+   * FIXME
+   */
+  template<std::size_t n>
+  static constexpr auto twiddles () {
+    return twiddles_impl(std::make_index_sequence<n>());
+  }
+
   /* Cooley-Tukey decomposition, i.e.: N = N1 * N2
    *  @N1: supported prime point count.
    *  @N2: remaining point count.
@@ -66,14 +172,14 @@ private:
   static constexpr std::size_t N2 = N / N1;
 
   /* Twiddle factor constants:
-   *  @phi: base phase shift of the twiddle factors.
-   *  @alpha: first coefficient of the recurrence relation.
-   *  @beta: second coefficient of the recurrence relation.
+   *  @W: array of twiddle step values.
    */
-  static constexpr double phi = -2 * hx::pi / N;
-  static constexpr double sp2 = hx::sin(phi / 2);
-  static constexpr double alpha = 2 * sp2 * sp2;
-  static constexpr double beta = hx::sin(phi);
+  static constexpr auto W = twiddles<N1>();
+
+  /* Shuffle operator:
+   *  @shuf: precompiled set of indices to swap to obtain the correct order.
+   */
+  static constexpr auto shuf = hx::fft_shuffle<Type, N2, N1>{};
 
   /* Cooley-Tukey recursions:
    *  @blk1: sub-fft over N1-element subvectors.
