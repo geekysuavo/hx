@@ -12,7 +12,7 @@
 
 namespace hx {
 
-/* hx::fft_shuffle<Type,N1,N2>
+/* hx::fft_shuffle<Type,N1,N2,Stride>
  *
  * Constexpr-compatible class encoding the set of swap operations
  * required to transpose an N1-by-N2 matrix into an N2-by-N1
@@ -20,7 +20,7 @@ namespace hx {
  *
  * Used by general stages of fft_block to shuffle indices.
  */
-template<typename Type, std::size_t N1, std::size_t N2>
+template<typename Type, std::size_t N1, std::size_t N2, std::size_t Stride>
 class fft_shuffle {
 public:
   /* fft_shuffle()
@@ -45,8 +45,8 @@ public:
       while (j < N && A[j] != i) j++;
 
       /* store the identified swap indices. */
-      swaps[n_swaps][0] = i;
-      swaps[n_swaps][1] = j;
+      swaps[n_swaps][0] = Stride * i;
+      swaps[n_swaps][1] = Stride * j;
       n_swaps++;
 
       /* update the temporary array. */
@@ -94,7 +94,7 @@ public:
   void operator() (Type* x) {
     /* execute N1 transforms of size N2. */
     for (std::size_t i = 0; i < N1; i++)
-      blk2(x + i);
+      blk2(x + S1 * i);
 
     /* apply twiddle factors using trigonometric recurrences. */
     for (std::size_t n1 = 1; n1 < N1; n1++) {
@@ -102,14 +102,15 @@ public:
       Type w = Type::R();
 
       for (std::size_t k2 = 0; k2 < N2; k2++) {
-        x[n1 + N1 * k2] = x[n1 + N1 * k2] * w;
+        const std::size_t idx = Stride * (n1 + N1 * k2);
+        x[idx] = x[idx] * w;
         w -= dw * w;
       }
     }
 
     /* execute N2 strided transforms of size N1. */
     for (std::size_t i = 0; i < N2; i++)
-      blk1(x + N1 * i);
+      blk1(x + S2 * i);
 
     /* apply the shuffle operator. */
     shuf(x);
@@ -133,21 +134,24 @@ private:
 
   /* twiddles_elem()
    *
-   * FIXME
+   * Compute the n'th 'phase shift' used to update the twiddle factors
+   * via trigonometric recurrences.
    */
   template<std::size_t n>
   static constexpr auto twiddles_elem () {
+    /* compute the recurrence relation coefficients. */
     constexpr double phi = -double(2 * n) * hx::pi / double(N);
     constexpr double sp2 = hx::sin(phi / 2);
     constexpr double alpha = 2 * sp2 * sp2;
     constexpr double beta = hx::sin(phi);
 
+    /* build and return a Type from the computed coefficients. */
     return Type{alpha * hx::scalar<Dim>::R() - beta * hx::scalar<Dim>::I()};
   }
 
   /* twiddles_impl()
    *
-   * FIXME
+   * Return an array of phase shifts for a set of powers Ids...
    */
   template<std::size_t... Ids>
   static constexpr auto twiddles_impl (std::index_sequence<Ids...> ids)
@@ -157,7 +161,7 @@ private:
 
   /* twiddles()
    *
-   * FIXME
+   * Return an array of n twiddle factor phase shift values.
    */
   template<std::size_t n>
   static constexpr auto twiddles () {
@@ -165,28 +169,34 @@ private:
   }
 
   /* Cooley-Tukey decomposition, i.e.: N = N1 * N2
-   *  @N1: supported prime point count.
-   *  @N2: remaining point count.
+   *
+   *  Factorization at the current layer:
+   *   @N1: supported prime point count.
+   *   @N2: remaining point count.
+   *
+   *  Strides of each block in the current layer:
+   *   @S1: Stride of the right-hand-side block.
+   *   @S2: Stride of the left-hand-side block.
+   *
+   *  Twiddle factor recurrences in the current layer:
+   *   @W: array of twiddle factor 'phase shift' values.
+   *
+   *  Shuffle operator:
+   *   @shuf: precompiled set of indices to swap to obtain the correct order.
    */
   static constexpr std::size_t N1 = next_factor();
   static constexpr std::size_t N2 = N / N1;
-
-  /* Twiddle factor constants:
-   *  @W: array of twiddle step values.
-   */
+  static constexpr std::size_t S1 = Stride;
+  static constexpr std::size_t S2 = N1 * Stride;
   static constexpr auto W = twiddles<N1>();
-
-  /* Shuffle operator:
-   *  @shuf: precompiled set of indices to swap to obtain the correct order.
-   */
-  static constexpr auto shuf = hx::fft_shuffle<Type, N2, N1>{};
+  static constexpr auto shuf = hx::fft_shuffle<Type, N2, N1, Stride>{};
 
   /* Cooley-Tukey recursions:
    *  @blk1: sub-fft over N1-element subvectors.
    *  @blk2: sub-fft over N2-element subvectors.
    */
-  hx::fft_block<Type, Dim, N1, 1>  blk1;
-  hx::fft_block<Type, Dim, N2, N1> blk2;
+  hx::fft_block<Type, Dim, N1, S1> blk1;
+  hx::fft_block<Type, Dim, N2, S2> blk2;
 };
 
 /* hx::fft_block<N=2>
