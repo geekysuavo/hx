@@ -117,6 +117,9 @@ public:
   }
 
 private:
+  /* Scalar: multicomplex scalar type of dimensionality Dim. */
+  using Scalar = hx::scalar<Dim>;
+
   /* next_factor()
    *
    * Return the next available value by which we can decompose
@@ -140,13 +143,12 @@ private:
   template<std::size_t n>
   static constexpr auto twiddles_elem () {
     /* compute the recurrence relation coefficients. */
-    constexpr double phi = -double(2 * n) * hx::pi / double(N);
-    constexpr double sp2 = hx::sin(phi / 2);
+    constexpr double sp2 = -hx::sin_v<n, N>;
     constexpr double alpha = 2 * sp2 * sp2;
-    constexpr double beta = hx::sin(phi);
+    constexpr double beta = -hx::sin_v<2*n, N>;
 
     /* build and return a Type from the computed coefficients. */
-    return Type{alpha * hx::scalar<Dim>::R() - beta * hx::scalar<Dim>::I()};
+    return Type{alpha * Scalar::R() - beta * Scalar::I()};
   }
 
   /* twiddles_impl()
@@ -234,11 +236,10 @@ public:
   }
 
 private:
-  static constexpr double phi = -2 * hx::pi / 3;
-
-  static constexpr auto w1 = Type{hx::scalar<Dim>::exp(phi)};
-  static constexpr auto w2 = Type{hx::scalar<Dim>::exp(2 * phi)};
-  static constexpr auto w4 = Type{hx::scalar<Dim>::exp(4 * phi)};
+  using Scalar = hx::scalar<Dim>;
+  static constexpr auto w1 = Type{Scalar::template expm<2, 3>()};
+  static constexpr auto w2 = Type{Scalar::template expm<2*2, 3>()};
+  static constexpr auto w4 = Type{Scalar::template expm<2*4, 3>()};
 };
 
 /* hx::fft_block<N=5>
@@ -264,17 +265,16 @@ public:
   }
 
 private:
-  static constexpr double phi = -2 * hx::pi / 5;
-
-  static constexpr auto w1 = Type{hx::scalar<Dim>::exp(phi)};
-  static constexpr auto w2 = Type{hx::scalar<Dim>::exp(2 * phi)};
-  static constexpr auto w3 = Type{hx::scalar<Dim>::exp(3 * phi)};
-  static constexpr auto w4 = Type{hx::scalar<Dim>::exp(4 * phi)};
-  static constexpr auto w6 = Type{hx::scalar<Dim>::exp(6 * phi)};
-  static constexpr auto w8 = Type{hx::scalar<Dim>::exp(8 * phi)};
-  static constexpr auto w9 = Type{hx::scalar<Dim>::exp(9 * phi)};
-  static constexpr auto w12 = Type{hx::scalar<Dim>::exp(12 * phi)};
-  static constexpr auto w16 = Type{hx::scalar<Dim>::exp(16 * phi)};
+  using Scalar = hx::scalar<Dim>;
+  static constexpr auto w1  = Type{Scalar::template expm<2, 5>()};
+  static constexpr auto w2  = Type{Scalar::template expm<2*2, 5>()};
+  static constexpr auto w3  = Type{Scalar::template expm<2*3, 5>()};
+  static constexpr auto w4  = Type{Scalar::template expm<2*4, 5>()};
+  static constexpr auto w6  = Type{Scalar::template expm<2*6, 5>()};
+  static constexpr auto w8  = Type{Scalar::template expm<2*8, 5>()};
+  static constexpr auto w9  = Type{Scalar::template expm<2*9, 5>()};
+  static constexpr auto w12 = Type{Scalar::template expm<2*12, 5>()};
+  static constexpr auto w16 = Type{Scalar::template expm<2*16, 6>()};
 };
 
 /* hx::fft<Type,N,Dim>

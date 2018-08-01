@@ -13,104 +13,86 @@ namespace hx {
  */
 constexpr double pi = 3.14159265358979323846264338327950288;
 
-/* cos()
+/* hx::trig_series<m, n, k, K>
  *
- * Implementation of cos(double) that supports constexpr evaluation,
- * based on the Taylor series expansion of the cosine function.
+ * Implementation of the Taylor series of sin(m*pi/n) and cos(m*pi/n)
+ * based on a recursive factorization of the series terms into a
+ * common factor, shown in the function body.
  */
-inline constexpr double cos (double x) {
-  /* Evaluation parameters:
-   *  @n: maximum term order.
-   */
-  constexpr std::size_t n = 32;
-
-  /* shift the argument into a more accurate range using
-   * trigonometric identities.
-   */
-  double t = x;
-  double sgn = 1;
-  if (t < 0) t *= -1;
-  while (t > hx::pi) {
-    t -= hx::pi;
-    sgn *= -1;
+template<std::size_t m, std::size_t n, std::size_t k, std::size_t K>
+struct trig_series {
+  /* value(): multiplies in a new term of the series. */
+  static inline constexpr double value () {
+    return 1 - (double(m) * hx::pi / double(n))
+             * (double(m) * hx::pi / double(n))
+             / double(k * (k + 1))
+             * hx::trig_series<m, n, k + 2, K>::value();
   }
+};
 
-  /* Initialize the computation:
-   *  @mxsq: negated squared value of @x.
-   *  @k: iteration index, order of @xk.
-   *  @fac: factorial value, (@k)!.
-   *  @C: series evaluation result.
-   *  @xk: power value, @x^@k.
-   */
-  const double mxsq = -t * t;
-  std::size_t k = 2, fac = 2;
-  double C = 1, xk = mxsq;
-
-  /* loop over the terms of the sum. */
-  while (k <= n) {
-    /* include the term into the sum. */
-    C += xk / double(fac);
-
-    /* update the order, factorial, and power value. */
-    k++; fac *= k;
-    k++; fac *= k;
-    xk *= mxsq;
-  }
-
-  /* return the computed sum. */
-  return C * sgn;
-}
-
-/* sin()
+/* hx::trig_series<m, n, K, K>
  *
- * Implementation of sin(double) that supports constexpr evaluation,
- * based on the Taylor series expansion of the sine function.
+ * Partial specialization of hx:trig_series<> that ends the recursive
+ * series computation at K terms.
  */
-inline constexpr double sin (double x) {
-  /* Evaluation parameters:
-   *  @n: maximum term order.
+template<std::size_t m, std::size_t n, std::size_t K>
+struct trig_series<m, n, K, K> {
+  /* value(): finalizes computation of the series. */
+  static inline constexpr double value () { return 1; }
+};
+
+/* hx::sin<m, n>
+ *
+ * Struct implementing hx::trig_series<> to compute sin(m*pi/n).
+ */
+template<std::size_t m, std::size_t n>
+struct sin {
+  /* Sine function parameters:
+   *  @kmax: highest-order term in the trigonometric series.
+   *  @mred: reduced numerator, extends sin() to +/-inf.
    */
-  constexpr std::size_t n = 32;
+  static constexpr std::size_t kmax = 40;
+  static constexpr std::size_t mred = m % (2 * n);
 
-  /* shift the argument into a more accurate range using
-   * trigonometric identities.
+  /* value(): computes the sine function using its taylor series. */
+  static inline constexpr double value () {
+    return (double(mred) * hx::pi / double(n))
+         * hx::trig_series<mred, n, 2, kmax>::value();
+  }
+};
+
+/* hx::cos<m, n>
+ *
+ * Struct implementing hx::trig_series<> to compute cos(m*pi/n).
+ */
+template<std::size_t m, std::size_t n>
+struct cos {
+  /* Cosine function parameters:
+   *  @kmax: highest-order term in the trigonometric series.
+   *  @mred: reduced numerator, extends cos() to +/-inf.
    */
-  double t = x;
-  double sgn = 1;
-  if (t < 0) {
-    t *= -1;
-    sgn *= -1;
+  static constexpr std::size_t kmax = 39;
+  static constexpr std::size_t mred = m % (2 * n);
+
+  /* value(): computes the cosine function using its taylor series. */
+  static inline constexpr double value () {
+    return trig_series<mred, n, 1, kmax>::value();
   }
-  while (t > hx::pi) {
-    t -= hx::pi;
-    sgn *= -1;
-  }
+};
 
-  /* Initialize the computation:
-   *  @mxsq: negated squared value of @x.
-   *  @k: iteration index, order of @xk.
-   *  @fac: factorial value, (@k)!.
-   *  @S: series evaluation result.
-   *  @xk: power value, @x^@k.
-   */
-  const double mxsq = -t * t;
-  std::size_t k = 1, fac = 1;
-  double S = 0, xk = t;
+/* hx::sin_v<m, n>
+ *
+ * Constant expression template that returns sin(m*pi/n).
+ */
+template<std::size_t m, std::size_t n>
+inline constexpr double sin_v = sin<m, n>::value();
 
-  /* loop over the terms of the sum. */
-  while (k <= n) {
-    /* include the term into the sum. */
-    S += xk / double(fac);
-
-    /* update the order, factorial, and power value. */
-    k++; fac *= k;
-    k++; fac *= k;
-    xk *= mxsq;
-  }
-
-  /* return the computed sum. */
-  return S * sgn;
-}
+/* hx::cos_v<m, n>
+ *
+ * Constant expression template that returns cos(m*pi/n).
+ */
+template<std::size_t m, std::size_t n>
+inline constexpr double cos_v = cos<m, n>::value();
 
 /* namespace hx */ }
 

@@ -214,12 +214,24 @@ public:
     return scalar(subscalar(), subscalar::R());
   }
 
-  /* scalar::exp()
+  /* scalar::exp<m,n>()
    *
-   * Return the multicomplex number exp(scalar::I() * theta).
+   * Return the multicomplex number exp(I * theta),
+   * where theta = m * pi / n.
    */
-  static inline constexpr scalar exp (double theta) {
-    return hx::cos(theta) * R() + hx::sin(theta) * I();
+  template<std::size_t m, std::size_t n>
+  static inline constexpr scalar exp () {
+    return hx::cos_v<m, n> * R() + hx::sin_v<m, n> * I();
+  }
+
+  /* scalar::expm<m,n>()
+   *
+   * Return the multicomplex number exp(-I * theta),
+   * where theta = m * pi / n.
+   */
+  template<std::size_t m, std::size_t n>
+  static inline constexpr scalar expm () {
+    return hx::cos_v<m, n> * R() - hx::sin_v<m, n> * I();
   }
 
 private:
