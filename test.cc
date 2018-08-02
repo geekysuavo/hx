@@ -20,8 +20,8 @@ int main () {
     std::cout << x[i] << std::endl;
   std::cout << std::endl;
 
-  auto f = hx::fft<x_type::base_type, x_type::shape<0>>{};
-  auto g = hx::fft<x_type::base_type, x_type::shape<0>, hx::inverse>{};
+  auto f = hx::fft::forward<x_type::base_type, x_type::shape<0>>{};
+  auto g = hx::fft::inverse<x_type::base_type, x_type::shape<0>>{};
   f(&x[0]);
   g(&x[0]);
 
