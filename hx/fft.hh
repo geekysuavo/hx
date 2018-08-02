@@ -12,6 +12,12 @@
 
 namespace hx {
 
+/* fft_direction
+ *
+ * Enumeration of the two types of available transforms.
+ */
+enum fft_direction : int { forward = -1, inverse = 1 };
+
 /* hx::fft_shuffle<Type,N1,N2,Stride>
  *
  * Constexpr-compatible class encoding the set of swap operations
@@ -84,7 +90,8 @@ private:
  * Implementation of the fast discrete Fourier transform (FFT) based
  * on the general Cooley-Tukey decimation-in-time index mapping.
  */
-template<typename Type, std::size_t Dim, std::size_t N, std::size_t Stride>
+template<typename Type, hx::fft_direction Dir, std::size_t Dim,
+         std::size_t N, std::size_t Stride>
 class fft_block {
 public:
   /* operator()()
@@ -143,9 +150,9 @@ private:
   template<std::size_t n>
   static constexpr auto twiddles_elem () {
     /* compute the recurrence relation coefficients. */
-    constexpr double sp2 = -hx::sin_v<n, N>;
+    constexpr double sp2 = double(Dir) * hx::sin_v<n, N>;
+    constexpr double beta = double(Dir) * hx::sin_v<2*n, N>;
     constexpr double alpha = 2 * sp2 * sp2;
-    constexpr double beta = -hx::sin_v<2*n, N>;
 
     /* build and return a Type from the computed coefficients. */
     return Type{alpha * Scalar::R() - beta * Scalar::I()};
@@ -197,8 +204,8 @@ private:
    *  @blk1: sub-fft over N1-element subvectors.
    *  @blk2: sub-fft over N2-element subvectors.
    */
-  hx::fft_block<Type, Dim, N1, S1> blk1;
-  hx::fft_block<Type, Dim, N2, S2> blk2;
+  hx::fft_block<Type, Dir, Dim, N1, S1> blk1;
+  hx::fft_block<Type, Dir, Dim, N2, S2> blk2;
 };
 
 /* hx::fft_block<N=2>
@@ -206,8 +213,9 @@ private:
  * Partial specialization of hx::fft_block<> for computing
  * 2-point discrete Fourier transforms.
  */
-template<typename Type, std::size_t Dim, std::size_t Stride>
-class fft_block<Type, Dim, 2, Stride> {
+template<typename Type, hx::fft_direction Dir,
+         std::size_t Dim, std::size_t Stride>
+class fft_block<Type, Dir, Dim, 2, Stride> {
 public:
   /* operator()() */
   void operator() (Type* x) {
@@ -217,13 +225,13 @@ public:
   }
 };
 
-/* hx::fft_block<N=3>
+/* hx::fft_block<N=3, Dir=forward>
  *
  * Partial specialization of hx::fft_block<> for computing
  * 3-point discrete Fourier transforms.
  */
 template<typename Type, std::size_t Dim, std::size_t Stride>
-class fft_block<Type, Dim, 3, Stride> {
+class fft_block<Type, hx::forward, Dim, 3, Stride> {
 public:
   /* operator()() */
   void operator() (Type* x) {
@@ -242,13 +250,38 @@ private:
   static constexpr auto w4 = Type{Scalar::template expm<2*4, 3>()};
 };
 
-/* hx::fft_block<N=5>
+/* hx::fft_block<N=3, Dir=inverse>
+ *
+ * Partial specialization of hx::fft_block<> for computing
+ * 3-point inverse discrete Fourier transforms.
+ */
+template<typename Type, std::size_t Dim, std::size_t Stride>
+class fft_block<Type, hx::inverse, Dim, 3, Stride> {
+public:
+  /* operator()() */
+  void operator() (Type* x) {
+    const Type x1 = x[Stride];
+    const Type x2 = x[2 * Stride];
+
+    x[Stride]     = x[0] + x1 * w1 + x2 * w2;
+    x[2 * Stride] = x[0] + x1 * w2 + x2 * w4;
+    x[0] += x1 + x2;
+  }
+
+private:
+  using Scalar = hx::scalar<Dim>;
+  static constexpr auto w1 = Type{Scalar::template exp<2, 3>()};
+  static constexpr auto w2 = Type{Scalar::template exp<2*2, 3>()};
+  static constexpr auto w4 = Type{Scalar::template exp<2*4, 3>()};
+};
+
+/* hx::fft_block<N=5, Dir=forward>
  *
  * Partial specialization of hx::fft_block<> for computing
  * 5-point discrete Fourier transforms.
  */
 template<typename Type, std::size_t Dim, std::size_t Stride>
-class fft_block<Type, Dim, 5, Stride> {
+class fft_block<Type, hx::forward, Dim, 5, Stride> {
 public:
   /* operator()() */
   void operator() (Type* x) {
@@ -274,14 +307,51 @@ private:
   static constexpr auto w8  = Type{Scalar::template expm<2*8, 5>()};
   static constexpr auto w9  = Type{Scalar::template expm<2*9, 5>()};
   static constexpr auto w12 = Type{Scalar::template expm<2*12, 5>()};
-  static constexpr auto w16 = Type{Scalar::template expm<2*16, 6>()};
+  static constexpr auto w16 = Type{Scalar::template expm<2*16, 5>()};
 };
 
-/* hx::fft<Type,N,Dim>
+/* hx::fft_block<N=5, Dir=inverse>
+ *
+ * Partial specialization of hx::fft_block<> for computing
+ * 5-point inverse discrete Fourier transforms.
+ */
+template<typename Type, std::size_t Dim, std::size_t Stride>
+class fft_block<Type, hx::inverse, Dim, 5, Stride> {
+public:
+  /* operator()() */
+  void operator() (Type* x) {
+    const Type x1 = x[Stride];
+    const Type x2 = x[2 * Stride];
+    const Type x3 = x[3 * Stride];
+    const Type x4 = x[4 * Stride];
+
+    x[Stride]     = x[0] + x1 * w1 + x2 * w2 + x3 * w3  + x4 * w4;
+    x[2 * Stride] = x[0] + x1 * w2 + x2 * w4 + x3 * w6  + x4 * w8;
+    x[3 * Stride] = x[0] + x1 * w3 + x2 * w6 + x3 * w9  + x4 * w12;
+    x[4 * Stride] = x[0] + x1 * w4 + x2 * w8 + x3 * w12 + x4 * w16;
+    x[0] += x1 + x2 + x3 + x4;
+  }
+
+private:
+  using Scalar = hx::scalar<Dim>;
+  static constexpr auto w1  = Type{Scalar::template exp<2, 5>()};
+  static constexpr auto w2  = Type{Scalar::template exp<2*2, 5>()};
+  static constexpr auto w3  = Type{Scalar::template exp<2*3, 5>()};
+  static constexpr auto w4  = Type{Scalar::template exp<2*4, 5>()};
+  static constexpr auto w6  = Type{Scalar::template exp<2*6, 5>()};
+  static constexpr auto w8  = Type{Scalar::template exp<2*8, 5>()};
+  static constexpr auto w9  = Type{Scalar::template exp<2*9, 5>()};
+  static constexpr auto w12 = Type{Scalar::template exp<2*12, 5>()};
+  static constexpr auto w16 = Type{Scalar::template exp<2*16, 5>()};
+};
+
+/* hx::fft<Type,N,Dir,Dim>
  *
  * Base type for all fast discrete Fourier transforms.
  */
-template<typename Type, std::size_t N, std::size_t Dim = 1>
+template<typename Type, std::size_t N,
+         hx::fft_direction Dir = hx::forward,
+         std::size_t Dim = 1>
 class fft {
 public:
   /* operator()
@@ -294,7 +364,7 @@ private:
   /* Computational block:
    *  @blk: Top-level block of the transform.
    */
-  hx::fft_block<Type, Dim, N, 1> blk;
+  hx::fft_block<Type, Dir, Dim, N, 1> blk;
 };
 
 /* namespace hx */ }

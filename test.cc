@@ -21,10 +21,12 @@ int main () {
   std::cout << std::endl;
 
   auto f = hx::fft<x_type::base_type, x_type::shape<0>>{};
+  auto g = hx::fft<x_type::base_type, x_type::shape<0>, hx::inverse>{};
   f(&x[0]);
+  g(&x[0]);
 
   for (std::size_t i = 0; i < x_type::shape<0>; i++)
-    std::cout << x[i] << std::endl;
+    std::cout << (1 / double(x_type::shape<0>)) * x[i] << std::endl;
   std::cout << std::endl;
 }
 
