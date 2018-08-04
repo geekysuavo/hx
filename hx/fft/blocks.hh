@@ -20,7 +20,8 @@ public:
    *
    * Apply the recursion to a specified vector of Type's.
    */
-  void operator() (Type* x) {
+  template<typename Ptr>
+  void operator() (Ptr x) {
     /* execute N1 transforms of size N2. */
     for (std::size_t i = 0; i < N1; i++)
       blk2(x + S1 * i);
@@ -140,7 +141,8 @@ template<typename Type, hx::fft::direction Dir,
 class block<Type, Dir, Dim, 2, Stride> {
 public:
   /* operator()() */
-  void operator() (Type* x) {
+  template<typename Ptr>
+  void operator() (Ptr x) {
     const Type xd = x[0] - x[Stride];
     x[0] += x[Stride];
     x[Stride] = xd;
@@ -156,7 +158,8 @@ template<typename Type, std::size_t Dim, std::size_t Stride>
 class block<Type, hx::fft::fwd, Dim, 3, Stride> {
 public:
   /* operator()() */
-  void operator() (Type* x) {
+  template<typename Ptr>
+  void operator() (Ptr x) {
     const Type x1 = x[Stride];
     const Type x2 = x[2 * Stride];
 
@@ -181,7 +184,8 @@ template<typename Type, std::size_t Dim, std::size_t Stride>
 class block<Type, hx::fft::inv, Dim, 3, Stride> {
 public:
   /* operator()() */
-  void operator() (Type* x) {
+  template<typename Ptr>
+  void operator() (Ptr x) {
     const Type x1 = x[Stride];
     const Type x2 = x[2 * Stride];
 
@@ -206,7 +210,8 @@ template<typename Type, std::size_t Dim, std::size_t Stride>
 class block<Type, hx::fft::fwd, Dim, 5, Stride> {
 public:
   /* operator()() */
-  void operator() (Type* x) {
+  template<typename Ptr>
+  void operator() (Ptr x) {
     const Type x1 = x[Stride];
     const Type x2 = x[2 * Stride];
     const Type x3 = x[3 * Stride];
@@ -241,7 +246,8 @@ template<typename Type, std::size_t Dim, std::size_t Stride>
 class block<Type, hx::fft::inv, Dim, 5, Stride> {
 public:
   /* operator()() */
-  void operator() (Type* x) {
+  template<typename Ptr>
+  void operator() (Ptr x) {
     const Type x1 = x[Stride];
     const Type x2 = x[2 * Stride];
     const Type x3 = x[3 * Stride];

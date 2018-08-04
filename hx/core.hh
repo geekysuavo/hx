@@ -9,6 +9,7 @@
 #include "extents.hh"
 #include "index.hh"
 #include "array.hh"
+#include "vector.hh"
 #include "trig.hh"
 #include "fft.hh"
 

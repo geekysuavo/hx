@@ -12,7 +12,7 @@ namespace hx {
 
 /* hx::index<Sizes...>
  *
- * multidimensional index class for accessing elements of hx::array's.
+ * Multidimensional index class for accessing elements of hx::array's.
  * the extents of an index are baked into its type at compile time.
  */
 template<std::size_t... Sizes>
@@ -153,6 +153,27 @@ public:
     for (std::size_t i = 0; i < n; i++)
       ids[i] = sz[i] - 1;
   }
+
+  /* prod()
+   *
+   * Compute the product of the sizes of dimensions {i, i+1, ..., j}.
+   */
+  template<std::size_t i, std::size_t j>
+  static constexpr std::size_t prod () {
+    std::size_t P = 1;
+    for (std::size_t k = i; k <= j; k++)
+      P *= sz[k];
+
+    return P;
+  }
+
+  /* stride<d>
+   *
+   * Return the linear array stride for stepping along dimension d.
+   */
+  template<std::size_t d>
+  static constexpr std::size_t stride =
+    prod<d + 1, sizeof...(Sizes) - 1>();
 
 private:
   /* Static properties:

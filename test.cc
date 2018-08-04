@@ -6,27 +6,40 @@
 #include "hx/core.hh"
 
 int main () {
-  using x_type = hx::array<hx::scalar<1>, 30>;
+  using x_type = hx::array<hx::scalar<2>, 4, 4>;
   x_type x;
 
-  x[0] = { 1, 5 };
-  x[1] = { 3, 2 };
-  x[2] = { 7, 1 };
-  x[3] = { 2, 0 };
-  for (std::size_t i = 4; i < x_type::shape<0>; i++)
-    x[i] = { 0, 0 };
-
   for (std::size_t i = 0; i < x_type::shape<0>; i++)
-    std::cout << x[i] << std::endl;
-  std::cout << std::endl;
+    for (std::size_t j = 0; j < x_type::shape<1>; j++)
+      x[i][j] = { i+1, j+1, -1, 0 };
 
-  auto f = hx::fft::forward<x_type::base_type, x_type::shape<0>>{};
-  auto g = hx::fft::inverse<x_type::base_type, x_type::shape<0>>{};
-  f(&x[0]);
-  g(&x[0]);
+  std::cout << std::fixed;
+  std::cout.precision(5);
 
-  for (std::size_t i = 0; i < x_type::shape<0>; i++)
-    std::cout << (1 / double(x_type::shape<0>)) * x[i] << std::endl;
-  std::cout << std::endl;
+  for (std::size_t i = 0; i < x_type::shape<0>; i++) {
+    for (std::size_t j = 0; j < x_type::shape<1>; j++)
+      std::cout << x[i][j] << ";  ";
+    std::cout << std::endl;
+  }
+
+  auto f = hx::fft::forward<x_type::base_type, x_type::shape<0>>();
+  auto idx = x_type::index_type{};
+  idx.head();
+
+  // FIXME -- need an elegant means of skipped-dimension iteration.
+  do {
+    if (idx[0] == 0) {
+      auto v = hx::vector<x_type, 0>(x, idx);
+      f(v);
+    }
+  }
+  while (idx++);
+
+  std::cout << "--------" << std::endl << std::endl;
+  for (std::size_t i = 0; i < x_type::shape<0>; i++) {
+    for (std::size_t j = 0; j < x_type::shape<1>; j++)
+      std::cout << x[i][j] << ";  ";
+    std::cout << std::endl;
+  }
 }
 

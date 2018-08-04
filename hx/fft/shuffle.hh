@@ -53,7 +53,8 @@ public:
    *
    * Apply the set of swaps determined in the constructor.
    */
-  constexpr void operator() (Type* x) const {
+  template<typename Ptr>
+  constexpr void operator() (Ptr x) const {
     /* apply the swaps. */
     Type swp;
     for (std::size_t i = 0; i < n_swaps; i++) {

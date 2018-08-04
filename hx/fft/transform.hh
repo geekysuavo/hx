@@ -20,7 +20,8 @@ public:
    *
    * Apply an in-place transform to the provided data vector.
    */
-  void operator() (Type* x) { blk(x); }
+  template<typename Ptr>
+  void operator() (Ptr x) { blk(x); }
 
 private:
   /* Computational block:
@@ -29,9 +30,17 @@ private:
   hx::fft::block<Type, Dir, Dim, N, 1> blk;
 };
 
+/* hx::fft::forward
+ *
+ * Type definition for simple creation of forward transforms.
+ */
 template<typename Type, std::size_t N, std::size_t Dim = 1>
 using forward = hx::fft::transform<Type, N, hx::fft::fwd, Dim>;
 
+/* hx::fft::inverse
+ *
+ * Type definition for simple creation of inverse transforms.
+ */
 template<typename Type, std::size_t N, std::size_t Dim = 1>
 using inverse = hx::fft::transform<Type, N, hx::fft::inv, Dim>;
 
