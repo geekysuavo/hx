@@ -22,18 +22,16 @@ int main () {
     std::cout << std::endl;
   }
 
-  auto f = hx::fft::forward<x_type::base_type, x_type::shape<0>>();
+  auto f = hx::fft::forward<x_type::base_type, x_type::shape<0>>{};
   auto idx = x_type::index_type{};
   idx.head();
 
-  // FIXME -- need an elegant means of skipped-dimension iteration.
+  constexpr auto skip = hx::dim<0>{};
   do {
-    if (idx[0] == 0) {
-      auto v = hx::vector<x_type, 0>(x, idx);
-      f(v);
-    }
+    auto v = hx::vector<x_type, 0>(x, idx);
+    f(v);
   }
-  while (idx++);
+  while (idx += skip);
 
   std::cout << "--------" << std::endl << std::endl;
   for (std::size_t i = 0; i < x_type::shape<0>; i++) {
