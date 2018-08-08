@@ -31,6 +31,30 @@ int main () {
 }
 ```
 
+In the next example, we allocate a 1200x320x125 array of 3-complex numbers
+on the heap (3 GB!) and apply a 3D mixed-radix multicomplex FFT to it:
+
+```cpp
+#include "hx/core.hh"
+
+int main () {
+  using x_type = hx::array<hx::scalar<3>, 1200, 320, 125>;
+  auto xp = std::make_unique<x_type>();
+
+  xp->foreach_dim([&xp] (auto dim) {
+    auto f = hx::fft::forward<x_type::base_type,
+                              x_type::shape<dim.value>,
+                              dim.value + 1>{};
+
+    xp->foreach_vector<dim.value>(f);
+  });
+}
+```
+
+Basic benchmarks show the code generated here to be 3-5x slower than FFTW,
+but considering the amount of work required to implement multicomplex FFTs
+by hand using FFTW, this reduction in speed can be accepted. :)
+
 ## Licensing
 
 The **hx** library is released under the
