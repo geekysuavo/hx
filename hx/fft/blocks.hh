@@ -21,7 +21,7 @@ public:
    * Apply the recursion to a specified vector of Type's.
    */
   template<typename Ptr>
-  void operator() (Ptr x) {
+  void operator() (Ptr x) const {
     /* execute N1 transforms of size N2. */
     for (std::size_t i = 0; i < N1; i++)
       blk2(x + S1 * i);
@@ -142,7 +142,7 @@ class block<Type, Dir, Dim, 2, Stride> {
 public:
   /* operator()() */
   template<typename Ptr>
-  void operator() (Ptr x) {
+  void operator() (Ptr x) const {
     const Type xd = x[0] - x[Stride];
     x[0] += x[Stride];
     x[Stride] = xd;
@@ -159,7 +159,7 @@ class block<Type, hx::fft::fwd, Dim, 3, Stride> {
 public:
   /* operator()() */
   template<typename Ptr>
-  void operator() (Ptr x) {
+  void operator() (Ptr x) const {
     const Type x1 = x[Stride];
     const Type x2 = x[2 * Stride];
 
@@ -185,7 +185,7 @@ class block<Type, hx::fft::inv, Dim, 3, Stride> {
 public:
   /* operator()() */
   template<typename Ptr>
-  void operator() (Ptr x) {
+  void operator() (Ptr x) const {
     const Type x1 = x[Stride];
     const Type x2 = x[2 * Stride];
 
@@ -211,7 +211,7 @@ class block<Type, hx::fft::fwd, Dim, 5, Stride> {
 public:
   /* operator()() */
   template<typename Ptr>
-  void operator() (Ptr x) {
+  void operator() (Ptr x) const {
     const Type x1 = x[Stride];
     const Type x2 = x[2 * Stride];
     const Type x3 = x[3 * Stride];
@@ -247,7 +247,7 @@ class block<Type, hx::fft::inv, Dim, 5, Stride> {
 public:
   /* operator()() */
   template<typename Ptr>
-  void operator() (Ptr x) {
+  void operator() (Ptr x) const {
     const Type x1 = x[Stride];
     const Type x2 = x[2 * Stride];
     const Type x3 = x[3 * Stride];

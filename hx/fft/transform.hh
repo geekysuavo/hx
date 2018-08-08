@@ -21,7 +21,7 @@ public:
    * Apply an in-place transform to the provided data vector.
    */
   template<typename Ptr>
-  void operator() (Ptr x) { blk(x); }
+  void operator() (Ptr x) const { blk(x); }
 
 private:
   /* Computational block:

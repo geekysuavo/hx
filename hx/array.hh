@@ -6,6 +6,7 @@
 #pragma once
 
 #include "index.hh"
+#include "vector.hh"
 
 namespace hx {
 
@@ -44,12 +45,12 @@ public:
   using shape_type = hx::extents<OuterDim, InnerDims...>;
   static constexpr auto extents = shape_type();
 
-  /* shape<idx>
+  /* shape<dim>
    *
    * Static member data template holding the array dimension sizes.
    */
-  template<std::size_t idx, typename = std::enable_if_t<(idx < ndims)>>
-  static inline constexpr auto shape = shape_type::template get<idx>();
+  template<std::size_t dim, typename = std::enable_if_t<(dim < ndims)>>
+  static inline constexpr auto shape = shape_type::template get<dim>();
 
   /* operator[](size_t)
    *
@@ -67,6 +68,44 @@ public:
    */
   Type& operator[] (index_type& idx) {
     return subscript_impl<1>(data[idx[0]], idx);
+  }
+
+  /* foreach_vector()
+   *
+   * Execute a function for each vector along a single dimension
+   * of an array. The function should accept the vector (a random
+   * access iterator over Type's) as its only argument.
+   */
+  template<std::size_t dim, typename Lambda,
+           typename = std::enable_if_t<(dim < ndims)>>
+  void foreach_vector (const Lambda& f) {
+    using this_type = hx::array<Type, OuterDim, InnerDims...>;
+    using vector_type = hx::vector<this_type, dim>;
+    using skip_type = hx::dim<dim>;
+
+    skip_type skip;
+    index_type idx;
+    idx.head();
+
+    do {
+      vector_type v{*this, idx};
+      f(v);
+    }
+    while (idx += skip);
+  }
+
+  /* foreach_dim()
+   *
+   * Execute a function for each dimension of an array. The function
+   * should accept a std::integral_constant<std::size_t, dim> as its
+   * only argument.
+   */
+  template<typename Lambda, std::size_t i = 0, std::size_t n = ndims>
+  inline void foreach_dim (const Lambda& f) {
+    f(std::integral_constant<std::size_t, i>{});
+
+    if constexpr (i + 1 < n)
+      foreach_dim<Lambda, i + 1, n>(f);
   }
 
 private:
@@ -123,6 +162,29 @@ public:
   /* operator[](index_type) */
   Type& operator[] (index_type& idx) {
     return data[idx[0]];
+  }
+
+  /* foreach_vector()
+   *
+   * Base implementation of foreach_vector() for one-dimensional arrays.
+   */
+  template<std::size_t dim, typename Lambda,
+           typename = std::enable_if_t<dim == 0>>
+  void foreach_vector (const Lambda& f) {
+    index_type idx;
+    idx.head();
+
+    hx::vector<hx::array<Type, Dim>, 0> v{*this, idx};
+    f(v);
+  }
+
+  /* foreach_dim()
+   *
+   * Base implementation of foreach_dim() for one-dimensional arrays.
+   */
+  template<typename Lambda>
+  inline void foreach_dim (const Lambda& f) {
+    f(std::integral_constant<std::size_t, 0>{});
   }
 
 private:

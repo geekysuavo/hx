@@ -22,16 +22,13 @@ int main () {
     std::cout << std::endl;
   }
 
-  auto f = hx::fft::forward<x_type::base_type, x_type::shape<0>>{};
-  auto idx = x_type::index_type{};
-  idx.head();
+  x.foreach_dim([&x] (auto dim) {
+    auto f = hx::fft::forward<x_type::base_type,
+                              x_type::shape<dim.value>,
+                              dim.value + 1>{};
 
-  constexpr auto skip = hx::dim<0>{};
-  do {
-    auto v = hx::vector<x_type, 0>(x, idx);
-    f(v);
-  }
-  while (idx += skip);
+    x.foreach_vector<dim.value>(f);
+  });
 
   std::cout << "--------" << std::endl << std::endl;
   for (std::size_t i = 0; i < x_type::shape<0>; i++) {
