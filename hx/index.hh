@@ -30,13 +30,41 @@ public:
    *
    * Default constructor.
    */
-  constexpr index () {}
+  constexpr index () : ids{0} {}
 
   /* index(extents)
    *
    * Constructor taking its Sizes... parameter pack from an hx::extents.
    */
-  constexpr index (hx::extents<Sizes...> ext) {}
+  constexpr index (hx::extents<Sizes...> ext) : ids{0} {}
+
+  /* is_correct_size: check that a parameter pack has the right size. */
+  template<typename... Ids>
+  using is_correct_size = std::integral_constant<bool,
+                            sizeof...(Ids) == sizeof...(Sizes)>;
+
+  /* can_cast_size_t: check that all types of a pack can be
+   * converted to std::size_t.
+   */
+  template<typename... Ids>
+  using can_cast_size_t =
+    std::conjunction<std::is_convertible<Ids, std::size_t>...>;
+
+  /* is_valid_indices: combines is_correct_size<> and can_cast_size_t<> */
+  template<typename... Ids>
+  static inline constexpr bool is_valid_indices =
+    is_correct_size<Ids...>::value && can_cast_size_t<Ids...>::value;
+
+  /* index(integral, ...)
+   *
+   * Constructor of hx::index<Sizes...> that accepts an initial
+   * set of index values.
+   */
+  template<typename... Ids,
+           typename = std::enable_if_t<is_valid_indices<Ids...>>>
+  constexpr index (Ids... init) : ids{0} {
+    load_indices<0, sizeof...(Ids)>(init...);
+  }
 
   /* operator[]()
    *
@@ -425,6 +453,18 @@ private:
    *  @ids: values of the multidimensional index.
    */
   std::size_t ids[n];
+
+  /* load_indices<i,n,Id,Ids...>()
+   *
+   * Recursive first/rest implementation of the value-wise constructor
+   * for index.
+   */
+  template<std::size_t i, std::size_t n, typename Id, typename... Ids>
+  constexpr void load_indices (Id first, Ids... rest) {
+    ids[i] = first;
+    if constexpr (i + 1 < n)
+      load_indices<i + 1, n>(rest...);
+  }
 };
 
 /* namespace hx */ }

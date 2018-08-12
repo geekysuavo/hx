@@ -52,6 +52,30 @@ public:
   template<std::size_t dim, typename = std::enable_if_t<(dim < ndims)>>
   static inline constexpr auto shape = shape_type::template get<dim>();
 
+  /* array()
+   *
+   * Default constructor.
+   */
+  constexpr array () {}
+
+  /* array(Type*)
+   *
+   * Constructor taking a pointer to initial data values.
+   */
+  template<typename T,
+           typename = std::enable_if_t<std::is_convertible_v<T, Type>>>
+  constexpr array (const T* init) {
+    /* copy from the data source. */
+    std::size_t i = 0;
+    index_type idx;
+    idx.head();
+    do {
+      (*this)[idx] = init[i];
+      i++;
+    }
+    while (idx++);
+  }
+
   /* operator[](size_t)
    *
    * Subscripting operator with integral argument. Returns the
@@ -153,6 +177,24 @@ public:
   /* shape<0> */
   template<std::size_t idx, typename = std::enable_if_t<idx == 0>>
   static inline constexpr auto shape = shape_type::template get<idx>();
+
+  /* array()
+   *
+   * Default constructor.
+   */
+  constexpr array () {}
+
+  /* array()
+   *
+   * Constructor taking a pointer to initial data values.
+   */
+  template<typename T,
+           typename = std::enable_if_t<std::is_convertible_v<T, Type>>>
+  constexpr array (const T* init) {
+    /* copy from the data source. */
+    for (std::size_t i = 0; i < Dim; i++)
+      data[i] = init[i];
+  }
 
   /* operator[](size_t) */
   Type& operator[] (std::size_t idx) {
