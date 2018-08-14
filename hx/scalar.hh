@@ -8,6 +8,7 @@
 #include <cmath>
 #include <iostream>
 
+#include "ordering.hh"
 #include "trig.hh"
 
 namespace hx {
@@ -179,6 +180,78 @@ public:
     return os;
   }
 
+  /* compare()
+   *
+   * Three-way comparison function.
+   */
+  constexpr hx::ordering compare (const scalar& rhs) {
+    const double L = squaredNorm();
+    const double R = rhs.squaredNorm();
+
+    if (L < R) {
+      return hx::less;
+    }
+    else if (L > R) {
+      return hx::greater;
+    }
+    else {
+      if (real == rhs.real && imag == rhs.imag)
+        return hx::equal;
+      else
+        return hx::equivalent;
+    }
+  }
+
+  /* operator==()
+   *
+   * Equality comparison operator.
+   */
+  constexpr bool operator== (const scalar& rhs) {
+    return compare(rhs) == hx::equal;
+  }
+
+  /* operator!=()
+   *
+   * Inequality comparison operator.
+   */
+  constexpr bool operator!= (const scalar& rhs) {
+    return compare(rhs) != hx::equal;
+  }
+
+  /* operator<()
+   *
+   * Less-than comparison operator.
+   */
+  constexpr bool operator< (const scalar& rhs) {
+    return compare(rhs) == hx::less;
+  }
+
+  /* operator>()
+   *
+   * Greater-than comparison operator.
+   */
+  constexpr bool operator> (const scalar& rhs) {
+    return compare(rhs) == hx::greater;
+  }
+
+  /* operator<=()
+   *
+   * Less-than-or-equal comparison operator.
+   */
+  constexpr bool operator<= (const scalar& rhs) {
+    const auto cmp = compare(rhs);
+    return cmp == hx::less || cmp == hx::equal;
+  }
+
+  /* operator>=()
+   *
+   * Greater-than-or-equal comparison operator.
+   */
+  constexpr bool operator>= (const scalar& rhs) {
+    const auto cmp = compare(rhs);
+    return cmp == hx::greater || cmp == hx::equal;
+  }
+
   /* squaredNorm()
    *
    * Returns the sum of squares of the coefficients of a scalar. Due to
@@ -299,6 +372,36 @@ public:
   /* operator*() */
   constexpr friend scalar operator* (scalar lhs, const scalar& rhs) {
     return lhs.real * rhs.real;
+  }
+
+  /* operator==() */
+  constexpr bool operator== (const scalar& rhs) {
+    return real == rhs.real;
+  }
+
+  /* operator!=() */
+  constexpr bool operator!= (const scalar& rhs) {
+    return real != rhs.real;
+  }
+
+  /* operator<() */
+  constexpr bool operator< (const scalar& rhs) {
+    return real < rhs.real;
+  }
+
+  /* operator>() */
+  constexpr bool operator> (const scalar& rhs) {
+    return real > rhs.real;
+  }
+
+  /* operator<=() */
+  constexpr bool operator<= (const scalar& rhs) {
+    return real <= rhs.real;
+  }
+
+  /* operator>=() */
+  constexpr bool operator>= (const scalar& rhs) {
+    return real >= rhs.real;
   }
 
   /* operator<<()

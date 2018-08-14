@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "ordering.hh"
 #include "scalar.hh"
 #include "extents.hh"
 #include "index.hh"

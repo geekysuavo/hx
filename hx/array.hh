@@ -68,13 +68,15 @@ public:
     /* copy from the data source. */
     std::size_t i = 0;
     index_type idx;
-    idx.head();
     do {
       (*this)[idx] = init[i];
       i++;
     }
     while (idx++);
   }
+
+  /* delete the implicit copy constructor. */
+  array (const array& x) = delete;
 
   /* operator[](size_t)
    *
@@ -94,6 +96,57 @@ public:
     return subscript_impl<1>(data[idx[0]], idx);
   }
 
+  /* reduce()
+   *
+   * Function template for reducing arrays to a single element through
+   * a general lambda function.
+   */
+  template<typename Lambda>
+  Type reduce (const Lambda& f) {
+    index_type idx;
+    Type value = (*this)[idx];
+    idx++;
+
+    do {
+      value = f(value, (*this)[idx]);
+    }
+    while (idx++);
+
+    return value;
+  }
+
+  /* min()
+   *
+   * Return the minimum element of an array.
+   */
+  auto min () {
+    return reduce([] (Type& a, Type& b) { return a < b ? a : b; });
+  }
+
+  /* max()
+   *
+   * Return the maximum element of an array.
+   */
+  auto max () {
+    return reduce([] (Type& a, Type& b) { return a > b ? a : b; });
+  }
+
+  /* sum()
+   *
+   * Return the sum of all elements of an array.
+   */
+  auto sum () {
+    return reduce([] (Type& a, Type& b) { return a + b; });
+  }
+
+  /* prod()
+   *
+   * Return the product of all elements of an array.
+   */
+  auto prod () {
+    return reduce([] (Type& a, Type& b) { return a * b; });
+  }
+
   /* foreach_vector()
    *
    * Execute a function for each vector along a single dimension
@@ -109,7 +162,6 @@ public:
 
     skip_type skip;
     index_type idx;
-    idx.head();
 
     do {
       vector_type v{*this, idx};
@@ -196,6 +248,9 @@ public:
       data[i] = init[i];
   }
 
+  /* delete the implicit copy constructor. */
+  array (const array& x) = delete;
+
   /* operator[](size_t) */
   Type& operator[] (std::size_t idx) {
     return data[idx];
@@ -206,6 +261,39 @@ public:
     return data[idx[0]];
   }
 
+  /* reduce()
+   *
+   * Implementation of reduce() for one-dimensional arrays.
+   */
+  template<typename Lambda>
+  Type reduce (const Lambda& f) {
+    Type value = data[0];
+
+    for (std::size_t i = 1; i < Dim; i++)
+      value = f(value, data[i]);
+
+    return value;
+  }
+
+  /* min() */
+  auto min () {
+    return reduce([] (Type& a, Type& b) { return a < b ? a : b; });
+  }
+
+  /* max() */
+  auto max () {
+    return reduce([] (Type& a, Type& b) { return a > b ? a : b; });
+  }
+
+  /* sum() */
+  auto sum () {
+    return reduce([] (Type& a, Type& b) { return a + b; });
+  }
+
+  /* prod() */
+  auto prod () {
+    return reduce([] (Type& a, Type& b) { return a * b; });
+  }
   /* foreach_vector()
    *
    * Base implementation of foreach_vector() for one-dimensional arrays.
@@ -214,8 +302,6 @@ public:
            typename = std::enable_if_t<dim == 0>>
   void foreach_vector (const Lambda& f) {
     index_type idx;
-    idx.head();
-
     hx::vector<hx::array<Type, Dim>, 0> v{*this, idx};
     f(v);
   }

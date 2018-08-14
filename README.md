@@ -22,7 +22,6 @@ int main () {
   auto idx = hx::index{x_type::extents};
 
   // traverse the array.
-  idx.head();
   do {
     // do something, e.g. conjugate each element:
     (*xp)[idx] = ~(*xp)[idx];
