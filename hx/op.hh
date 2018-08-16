@@ -4,8 +4,8 @@
  */
 
 #pragma once
-
-#include "array/array.hh"
-#include "array/utility.hh"
-#include "array/overloads.hh"
+#include "op/type.hh"
+#include "op/unary.hh"
+#include "op/binary.hh"
+#include "op/overloads.hh"
 

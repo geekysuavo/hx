@@ -435,5 +435,26 @@ scalar(const scalar<Dim>& a, const scalar<Dim>& b) -> scalar<Dim + 1>;
 template<std::size_t Dim>
 inline constexpr auto I = hx::scalar<Dim>::I();
 
+/* is_scalar<T>
+ *
+ * Struct template for checking if a type is a scalar.
+ */
+template<typename T>
+struct is_scalar : public std::false_type {};
+
+/* is_scalar<scalar<Dim>>
+ *
+ * Specialization of is_scalar<T> that yields a true value.
+ */
+template<std::size_t Dim>
+struct is_scalar<hx::scalar<Dim>> : public std::true_type {};
+
+/* is_scalar_v<T>
+ *
+ * Constant expression returning the value of is_scalar<T>.
+ */
+template<typename T>
+inline constexpr bool is_scalar_v = hx::is_scalar<T>::value;
+
 /* namespace hx */ }
 
