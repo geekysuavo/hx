@@ -2,16 +2,14 @@
 CXX=clang++
 CXXFLAGS=-std=c++17 -Wall -O3
 
-BIN=test
-SRC=test.cc
+all: test
 
-all: $(BIN)
-
-$(BIN): $(SRC)
-	$(CXX) $(CXXFLAGS) $^ -o $@
+test:
+	@$(MAKE) -C tests test
 
 clean:
-	rm -f $(BIN)
+	@echo " CLEAN"
+	@$(MAKE) -C tests clean
 
 again: clean all
 

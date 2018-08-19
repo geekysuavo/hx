@@ -7,8 +7,8 @@
 
 #include "ordering.hh"
 #include "scalar.hh"
-#include "extents.hh"
 #include "index.hh"
+#include "schedule.hh"
 #include "array.hh"
 #include "vector.hh"
 #include "trig.hh"

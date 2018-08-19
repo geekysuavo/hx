@@ -7,5 +7,6 @@
 #include "op/type.hh"
 #include "op/unary.hh"
 #include "op/binary.hh"
+#include "op/schedules.hh"
 #include "op/overloads.hh"
 

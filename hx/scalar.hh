@@ -86,37 +86,7 @@ public:
     load_coeffs<0, sizeof...(Cs)>(coeffs...);
   }
 
-  /* operator[]()
-   *
-   * Subscripting operator. Returns a single coefficient from
-   * a scalar without any bounds checking.
-   */
-  constexpr double& operator[] (std::size_t idx) {
-    constexpr std::size_t K = 1 << (Dim - 1);
-    return (idx < K ? real[idx] : imag[idx - K]);
-  }
-
-  /* operator~()
-   *
-   * Conjugation operator. Returns the effect of negating each pure
-   * complex basis element (e.g. I<1>, I<2>, ...) exactly once.
-   */
-  constexpr scalar operator~ () const {
-    if constexpr (Dim == 1)
-      return scalar(real, -imag);
-    else
-      return scalar(~real, -~imag);
-  }
-
-  /* operator-()
-   *
-   * Unary negation operator.
-   */
-  constexpr scalar operator- () const {
-    return scalar(-real, -imag);
-  }
-
-  /* operator+=()
+  /* operator+=(scalar)
    *
    * Combined addition-assignment operator.
    */
@@ -126,7 +96,16 @@ public:
     return *this;
   }
 
-  /* operator-=()
+  /* operator+=(double)
+   *
+   * Combined real addition-assignment operator.
+   */
+  constexpr scalar& operator+= (double b) {
+    real += b;
+    return *this;
+  }
+
+  /* operator-=(scalar)
    *
    * Combined subtraction-assignment operator.
    */
@@ -136,57 +115,119 @@ public:
     return *this;
   }
 
-  /* operator+()
+  /* operator-=(double)
+   *
+   * Combined real subtraction-assignment operator.
+   */
+  constexpr scalar& operator-= (double b) {
+    real -= b;
+    return *this;
+  }
+
+  /* operator*=(double)
+   *
+   * Combined real multiplication-assignment operator.
+   */
+  constexpr scalar& operator*= (double b) {
+    real *= b;
+    imag *= b;
+    return *this;
+  }
+
+  /* operator/=(double)
+   *
+   * Combined real division-assignment operator.
+   */
+  constexpr scalar& operator/= (double b) {
+    real /= b;
+    imag /= b;
+    return *this;
+  }
+
+  /* operator~()
+   *
+   * Conjugation operator. Returns the effect of negating each pure
+   * complex basis element (e.g. I<1>, I<2>, ...) exactly once.
+   */
+  constexpr scalar operator~ () const {
+    if constexpr (Dim == 1)
+      return {real, -imag};
+    else
+      return {~real, -~imag};
+  }
+
+  /* operator-()
+   *
+   * Unary negation operator.
+   */
+  constexpr scalar operator- () const {
+    return {-real, -imag};
+  }
+
+  /* operator+(scalar)
    *
    * Binary addition operator.
    */
-  constexpr friend scalar operator+ (scalar lhs, const scalar& rhs) {
-    return scalar(lhs.real + rhs.real,
-                  lhs.imag + rhs.imag);
+  constexpr scalar operator+ (const scalar& b) const {
+    return {real + b.real, imag + b.imag};
   }
 
-  /* operator-(scalar, scalar)
+  /* operator+(double)
+   *
+   * Real binary addition operator.
+   */
+  constexpr scalar operator+ (double b) const {
+    return {real + b, imag};
+  }
+
+  /* operator-(scalar)
    *
    * Binary subtraction operator.
    */
-  constexpr friend scalar operator- (scalar lhs, const scalar& rhs) {
-    return scalar(lhs.real - rhs.real,
-                  lhs.imag - rhs.imag);
+  constexpr scalar operator- (const scalar& b) const {
+    return {real - b.real, imag - b.imag};
   }
 
-  /* operator*()
+  /* operator-(double)
+   *
+   * Real binary subtraction operator.
+   */
+  constexpr scalar operator- (double b) const {
+    return {real - b, imag};
+  }
+
+  /* operator*(scalar)
    *
    * Binary multiplication operator.
    */
-  constexpr friend scalar operator* (scalar lhs, const scalar& rhs) {
-    return scalar(lhs.real * rhs.real - lhs.imag * rhs.imag,
-                  lhs.real * rhs.imag + lhs.imag * rhs.real);
+  constexpr scalar operator* (const scalar& b) const {
+    return {real * b.real - imag * b.imag,
+            real * b.imag + imag * b.real};
   }
 
-  /* operator*(double, scalar)
+  /* operator*(double)
    *
-   * Binary scaling operator.
+   * Binary real multiplication operator.
    */
-  constexpr friend scalar operator* (double lhs, const scalar& rhs) {
-    return scalar(lhs * rhs.real, lhs * rhs.imag);
+  constexpr scalar operator* (double b) const {
+    return {real * b, imag * b};
   }
 
-  /* operator<<()
+  /* operator/(double)
    *
-   * Output stream operator.
+   * Binary real division operator.
    */
-  friend std::ostream& operator<< (std::ostream& os, const scalar& obj) {
-    os << "(" << obj.real << ", " << obj.imag << ")";
-    return os;
+  constexpr scalar operator/ (double b) const {
+    return {real / b, imag / b};
   }
 
   /* compare()
    *
    * Three-way comparison function.
    */
-  constexpr hx::ordering compare (const scalar& rhs) {
+  constexpr hx::ordering compare (const scalar& b) const {
     const double L = squaredNorm();
-    const double R = rhs.squaredNorm();
+    const double R = b.squaredNorm();
 
     if (L < R) {
       return hx::less;
@@ -195,7 +236,7 @@ public:
       return hx::greater;
     }
     else {
-      if (real == rhs.real && imag == rhs.imag)
+      if (real == b.real && imag == b.imag)
         return hx::equal;
       else
         return hx::equivalent;
@@ -206,40 +247,40 @@ public:
    *
    * Equality comparison operator.
    */
-  constexpr bool operator== (const scalar& rhs) {
-    return compare(rhs) == hx::equal;
+  constexpr bool operator== (const scalar& b) const {
+    return compare(b) == hx::equal;
   }
 
   /* operator!=()
    *
    * Inequality comparison operator.
    */
-  constexpr bool operator!= (const scalar& rhs) {
-    return compare(rhs) != hx::equal;
+  constexpr bool operator!= (const scalar& b) const {
+    return compare(b) != hx::equal;
   }
 
   /* operator<()
    *
    * Less-than comparison operator.
    */
-  constexpr bool operator< (const scalar& rhs) {
-    return compare(rhs) == hx::less;
+  constexpr bool operator< (const scalar& b) const {
+    return compare(b) == hx::less;
   }
 
   /* operator>()
    *
    * Greater-than comparison operator.
    */
-  constexpr bool operator> (const scalar& rhs) {
-    return compare(rhs) == hx::greater;
+  constexpr bool operator> (const scalar& b) const {
+    return compare(b) == hx::greater;
   }
 
   /* operator<=()
    *
    * Less-than-or-equal comparison operator.
    */
-  constexpr bool operator<= (const scalar& rhs) {
-    const auto cmp = compare(rhs);
+  constexpr bool operator<= (const scalar& b) const {
+    const auto cmp = compare(b);
     return cmp == hx::less || cmp == hx::equal;
   }
 
@@ -247,9 +288,34 @@ public:
    *
    * Greater-than-or-equal comparison operator.
    */
-  constexpr bool operator>= (const scalar& rhs) {
-    const auto cmp = compare(rhs);
+  constexpr bool operator>= (const scalar& b) const {
+    const auto cmp = compare(b);
     return cmp == hx::greater || cmp == hx::equal;
+  }
+
+  /* operator[]()
+   *
+   * Subscripting operator. Returns a single coefficient from
+   * a scalar without any bounds checking.
+   */
+  constexpr double& operator[] (std::size_t idx) {
+    constexpr std::size_t K = 1 << (Dim - 1);
+    return (idx < K ? real[idx] : imag[idx - K]);
+  }
+
+  /* operator[]() const */
+  constexpr double operator[] (std::size_t idx) const {
+    constexpr std::size_t K = 1 << (Dim - 1);
+    return (idx < K ? real[idx] : imag[idx - K]);
+  }
+
+  /* operator<<()
+   *
+   * Output stream operator.
+   */
+  friend std::ostream& operator<< (std::ostream& os, const scalar& obj) {
+    os << "(" << obj.real << ", " << obj.imag << ")";
+    return os;
   }
 
   /* squaredNorm()
@@ -294,7 +360,7 @@ public:
    */
   template<std::size_t m, std::size_t n>
   static inline constexpr scalar exp () {
-    return hx::cos_v<m, n> * R() + hx::sin_v<m, n> * I();
+    return R() * hx::cos_v<m, n> + I() * hx::sin_v<m, n>;
   }
 
   /* scalar::expm<m,n>()
@@ -304,7 +370,7 @@ public:
    */
   template<std::size_t m, std::size_t n>
   static inline constexpr scalar expm () {
-    return hx::cos_v<m, n> * R() - hx::sin_v<m, n> * I();
+    return R() * hx::cos_v<m, n> - I() * hx::sin_v<m, n>;
   }
 
 private:
@@ -337,16 +403,6 @@ public:
   constexpr scalar (double re) : real(re) {}
   constexpr scalar () : scalar(0) {}
 
-  /* operator[]() */
-  constexpr double& operator[] (std::size_t idx) {
-    return real;
-  }
-
-  /* operator-() */
-  constexpr scalar operator- () const {
-    return -real;
-  }
-
   /* operator+=() */
   constexpr scalar& operator+= (const scalar& b) {
     real += b.real;
@@ -359,49 +415,81 @@ public:
     return *this;
   }
 
-  /* operator+() */
-  constexpr friend scalar operator+ (scalar lhs, const scalar& rhs) {
-    return lhs.real + rhs.real;
+  /* operator*=() */
+  constexpr scalar& operator*= (const scalar& b) {
+    real *= b.real;
+    return *this;
   }
 
-  /* operator-(scalar, scalar) */
-  constexpr friend scalar operator- (scalar lhs, const scalar& rhs) {
-    return lhs.real - rhs.real;
+  /* operator/=() */
+  constexpr scalar& operator/= (const scalar& b) {
+    real /= b.real;
+    return *this;
+  }
+
+  /* operator-() */
+  constexpr scalar operator- () const {
+    return -real;
+  }
+
+  /* operator+() */
+  constexpr scalar operator+ (const scalar& b) const {
+    return real + b.real;
+  }
+
+  /* operator-(scalar) */
+  constexpr scalar operator- (const scalar& b) const {
+    return real - b.real;
   }
 
   /* operator*() */
-  constexpr friend scalar operator* (scalar lhs, const scalar& rhs) {
-    return lhs.real * rhs.real;
+  constexpr scalar operator* (const scalar& b) const {
+    return real * b.real;
+  }
+
+  /* operator/() */
+  constexpr scalar operator/ (const scalar& b) const {
+    return real / b.real;
   }
 
   /* operator==() */
-  constexpr bool operator== (const scalar& rhs) {
-    return real == rhs.real;
+  constexpr bool operator== (const scalar& b) const {
+    return real == b.real;
   }
 
   /* operator!=() */
-  constexpr bool operator!= (const scalar& rhs) {
-    return real != rhs.real;
+  constexpr bool operator!= (const scalar& b) const {
+    return real != b.real;
   }
 
   /* operator<() */
-  constexpr bool operator< (const scalar& rhs) {
-    return real < rhs.real;
+  constexpr bool operator< (const scalar& b) const {
+    return real < b.real;
   }
 
   /* operator>() */
-  constexpr bool operator> (const scalar& rhs) {
-    return real > rhs.real;
+  constexpr bool operator> (const scalar& b) const {
+    return real > b.real;
   }
 
   /* operator<=() */
-  constexpr bool operator<= (const scalar& rhs) {
-    return real <= rhs.real;
+  constexpr bool operator<= (const scalar& b) const {
+    return real <= b.real;
   }
 
   /* operator>=() */
-  constexpr bool operator>= (const scalar& rhs) {
-    return real >= rhs.real;
+  constexpr bool operator>= (const scalar& b) const {
+    return real >= b.real;
+  }
+
+  /* operator[]() */
+  constexpr double& operator[] (std::size_t idx) {
+    return real;
+  }
+
+  /* operator[]() const */
+  constexpr double operator[] (std::size_t idx) const {
+    return real;
   }
 
   /* operator<<()

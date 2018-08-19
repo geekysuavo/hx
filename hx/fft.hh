@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include "extents.hh"
 #include "trig.hh"
 
 #include <array>

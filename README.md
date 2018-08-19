@@ -19,7 +19,7 @@ int main () {
   auto xp = std::make_unique<x_type>();
 
   // declare an index for array traversal.
-  auto idx = hx::index{x_type::extents};
+  x_type::index_type idx;
 
   // traverse the array.
   do {

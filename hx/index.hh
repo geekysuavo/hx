@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include "extents.hh"
 #include <iostream>
 
 namespace hx {
@@ -31,12 +30,6 @@ public:
    * Default constructor.
    */
   constexpr index () : ids{0} {}
-
-  /* index(extents)
-   *
-   * Constructor taking its Sizes... parameter pack from an hx::extents.
-   */
-  constexpr index (hx::extents<Sizes...> ext) : ids{0} {}
 
   /* is_correct_size: check that a parameter pack has the right size. */
   template<typename... Ids>
@@ -72,6 +65,11 @@ public:
    * without any bounds checking.
    */
   constexpr std::size_t& operator[] (std::size_t i) {
+    return ids[i];
+  }
+
+  /* operator[]() const */
+  constexpr std::size_t operator[] (std::size_t i) const {
     return ids[i];
   }
 
@@ -333,6 +331,27 @@ public:
     return !allzero;
   }
 
+  /* operator==()
+   *
+   * Equality comparison operator for indices.
+   */
+  constexpr bool operator== (const index& I2) const {
+    for (std::size_t i = 0; i < n; i++)
+      if (ids[i] != I2.ids[i])
+        return false;
+
+    return true;
+  }
+
+  /* operator<()
+   *
+   * Less-than comparison operator for indices based on linear array offset,
+   * packed using right-first order.
+   */
+  constexpr bool operator< (const index& I2) const {
+    return pack_right() < I2.pack_right();
+  }
+
   /* operator<<()
    *
    * Output stream operator.
@@ -367,7 +386,7 @@ public:
    * Compute the linear array offset from an index, where elements
    * are stored in left-first order.
    */
-  constexpr std::size_t pack_left () {
+  constexpr std::size_t pack_left () const {
     std::size_t offset = 0;
 
     for (std::size_t i = 0, stride = 1; i < n; i++) {
@@ -383,7 +402,7 @@ public:
    * Compute the linear array offset from an index, where elements
    * are stored in right-first order.
    */
-  constexpr std::size_t pack_right () {
+  constexpr std::size_t pack_right () const {
     std::size_t offset = 0;
 
     for (std::size_t i = n, stride = 1; i > 0; i--) {
@@ -416,6 +435,15 @@ public:
       ids[i - 1] = reduced % sz[i - 1];
       reduced = (reduced - ids[i - 1]) / sz[i - 1];
     }
+  }
+
+  /* size<i>()
+   *
+   * Return the template size at index @i from an hx::index type.
+   */
+  template<std::size_t i>
+  static inline constexpr std::size_t size () {
+    return sz[i];
   }
 
   /* prod()
