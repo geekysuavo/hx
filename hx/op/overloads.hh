@@ -24,34 +24,32 @@ auto operator- (hx::op::binary<type, Ta, Tb> lhs) {
 
 /* -- */
 
-/* binary + T& */
-template<hx::op::type type, typename Ta, typename Tb, typename R>
-auto operator+ (hx::op::binary<type, Ta, Tb> lhs, R& rhs) {
-  return hx::op::binary<hx::op::plus, decltype(lhs), R&>(lhs, rhs);
-}
-
-/* binary + T */
-template<hx::op::type type, typename Ta, typename Tb, typename R>
+/* binary + non-array */
+template<hx::op::type type, typename Ta, typename Tb, typename R,
+         typename = std::enable_if_t<!hx::is_array_v<R>>>
 auto operator+ (hx::op::binary<type, Ta, Tb> lhs, R rhs) {
   return hx::op::binary<hx::op::plus, decltype(lhs), R>(lhs, rhs);
 }
 
-/* binary - T& */
-template<hx::op::type type, typename Ta, typename Tb, typename R>
-auto operator- (hx::op::binary<type, Ta, Tb> lhs, R& rhs) {
-  return hx::op::binary<hx::op::minus, decltype(lhs), R&>(lhs, rhs);
+/* binary - non-array */
+template<hx::op::type type, typename Ta, typename Tb, typename R,
+         typename = std::enable_if_t<!hx::is_array_v<R>>>
+auto operator- (hx::op::binary<type, Ta, Tb> lhs, R rhs) {
+  return hx::op::binary<hx::op::minus, decltype(lhs), R>(lhs, rhs);
 }
 
-/* binary * T& */
-template<hx::op::type type, typename Ta, typename Tb, typename R>
-auto operator* (hx::op::binary<type, Ta, Tb> lhs, R& rhs) {
-  return hx::op::binary<hx::op::times, decltype(lhs), R&>(lhs, rhs);
+/* binary * non-array */
+template<hx::op::type type, typename Ta, typename Tb, typename R,
+         typename = std::enable_if_t<!hx::is_array_v<R>>>
+auto operator* (hx::op::binary<type, Ta, Tb> lhs, R rhs) {
+  return hx::op::binary<hx::op::times, decltype(lhs), R>(lhs, rhs);
 }
 
-/* binary / T& */
-template<hx::op::type type, typename Ta, typename Tb, typename R>
-auto operator/ (hx::op::binary<type, Ta, Tb> lhs, R& rhs) {
-  return hx::op::binary<hx::op::divide, decltype(lhs), R&>(lhs, rhs);
+/* binary / non-array */
+template<hx::op::type type, typename Ta, typename Tb, typename R,
+         typename = std::enable_if_t<!hx::is_array_v<R>>>
+auto operator/ (hx::op::binary<type, Ta, Tb> lhs, R rhs) {
+  return hx::op::binary<hx::op::divide, decltype(lhs), R>(lhs, rhs);
 }
 
 /* namespace hx::op */ }

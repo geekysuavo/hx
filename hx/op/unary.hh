@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "type.hh"
 #include "utility.hh"
 
 namespace hx::op {
@@ -19,7 +20,7 @@ struct unary {
 
   constexpr unary (T operand) : a(operand) {}
 
-  inline constexpr auto operator[] (index_type& idx) const {
+  inline constexpr auto operator[] (const index_type& idx) const {
     if constexpr (type == hx::op::minus)
       return -a[idx];
     else

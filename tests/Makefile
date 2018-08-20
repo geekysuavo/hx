@@ -7,7 +7,7 @@ CXXFLAGS+= -ftemplate-depth=2048
 GEN=cxxtestgen
 GENFLAGS=--error-printer
 
-TEST=index scalar trig
+TEST=array fft index scalar schedule trig vector
 SRC=$(addsuffix .cc,$(TEST))
 HDR=$(addsuffix .hh,$(TEST))
 

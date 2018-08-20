@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "type.hh"
 #include "utility.hh"
 
 namespace hx::op {
@@ -29,7 +30,7 @@ struct binary<type, Ta, Tb, true, true> {
 
   constexpr binary (Ta lhs, Tb rhs) : a(lhs), b(rhs) {}
 
-  inline constexpr auto operator[] (index_type& idx) const {
+  inline constexpr auto operator[] (const index_type& idx) const {
     if constexpr (type == hx::op::plus)
       return a[idx] + b[idx];
     else if constexpr (type == hx::op::minus)
@@ -57,7 +58,7 @@ struct binary<type, Ta, Tb, true, false> {
 
   constexpr binary (Ta lhs, Tb rhs) : a(lhs), b(rhs) {}
 
-  inline constexpr auto operator[] (index_type& idx) const {
+  inline constexpr auto operator[] (const index_type& idx) const {
     if constexpr (type == hx::op::plus)
       return a[idx] + b;
     else if constexpr (type == hx::op::minus)
@@ -85,7 +86,7 @@ struct binary<type, Ta, Tb, false, true> {
 
   constexpr binary (Ta lhs, Tb rhs) : a(lhs), b(rhs) {}
 
-  inline constexpr auto operator[] (index_type& idx) const {
+  inline constexpr auto operator[] (const index_type& idx) const {
     if constexpr (type == hx::op::plus)
       return a + b[idx];
     else if constexpr (type == hx::op::minus)

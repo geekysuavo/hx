@@ -5,12 +5,19 @@
 
 #pragma once
 
-#include "ordering.hh"
 #include "scalar.hh"
-#include "index.hh"
 #include "schedule.hh"
-#include "array.hh"
+
+#include "array/array.hh"
+#include "array/utility.hh"
+
+#include "array/overloads.hh"
+#include "op/overloads.hh"
+
 #include "vector.hh"
-#include "trig.hh"
-#include "fft.hh"
+
+#include "fft/direction.hh"
+#include "fft/shuffle.hh"
+#include "fft/blocks.hh"
+#include "fft/transform.hh"
 

@@ -28,7 +28,7 @@ public:
    *
    * Constructor taking an array and an index into that array.
    */
-  constexpr vector (Array& x, index_type& idx) : xdata(&x[idx]) {}
+  constexpr vector (Array& x, const index_type& idx) : xdata(&x[idx]) {}
 
   /* vector(base_type*)
    *
@@ -51,8 +51,8 @@ public:
    * Offset/re-addressing operator. Returns a new vector<Array,Dim>
    * that begins at the requested element of the vector view.
    */
-  constexpr auto operator+ (const std::size_t offset) {
-    return vector<Array, Dim>(xdata + offset * Stride);
+  constexpr auto operator+ (std::size_t offset) const {
+    return hx::vector<Array, Dim>(xdata + offset * Stride);
   }
 
 private:

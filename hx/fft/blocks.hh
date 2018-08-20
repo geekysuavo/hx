@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <array>
+
 namespace hx::fft {
 
 /* hx::fft::block<Type,Dir,Dim,N,Stride>
