@@ -151,6 +151,14 @@ public:
     assert_values(x, {4});
   }
 
+  /* inverse() */
+  void testInverse () {
+    hx::scalar<0> x{4}, y{5}, z{10};
+    TS_ASSERT_EQUALS(x.inverse(), 0.25);
+    TS_ASSERT_EQUALS(y.inverse(), 0.2);
+    TS_ASSERT_EQUALS(z.inverse(), 0.1);
+  }
+
   /* scalar::R() */
   void testR () {
     auto x = hx::scalar<0>::R();

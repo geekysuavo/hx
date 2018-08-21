@@ -186,6 +186,14 @@ public:
     TS_ASSERT_EQUALS(x.norm(), 5);
   }
 
+  /* inverse() */
+  void testInverse () {
+    hx::scalar<1> x{3, 4}, y{x.inverse()}, z{x * y};
+    assert_values(x, {3, 4});
+    assert_values(y, {0.12, -0.16});
+    assert_values(z, {1, 0});
+  }
+
   /* scalar::R() */
   void testR () {
     auto x = hx::scalar<1>::R();

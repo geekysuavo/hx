@@ -213,34 +213,28 @@ public:
     return {real * b, imag * b};
   }
 
-  /* operator/(double)
+  /* operator/(scalar,scalar)
+   *
+   * Binary division operator.
+   */
+  constexpr friend scalar operator/ (const scalar& a, const scalar& b) {
+    return a * b.inverse();
+  }
+
+  /* operator/(scalar,double)
    *
    * Binary real division operator.
    */
-  constexpr scalar operator/ (double b) const {
-    return {real / b, imag / b};
+  constexpr friend scalar operator/ (const scalar& a, double b) {
+    return {a.real / b, a.imag / b};
   }
 
-  /* compare()
+  /* operator/(double,scalar)
    *
-   * Three-way comparison function.
+   * Binary real inversion operator.
    */
-  constexpr hx::ordering compare (const scalar& b) const {
-    const double L = squaredNorm();
-    const double R = b.squaredNorm();
-
-    if (L < R) {
-      return hx::less;
-    }
-    else if (L > R) {
-      return hx::greater;
-    }
-    else {
-      if (real == b.real && imag == b.imag)
-        return hx::equal;
-      else
-        return hx::equivalent;
-    }
+  constexpr friend scalar operator/ (double a, const scalar& b) {
+    return b.inverse() * a;
   }
 
   /* operator==()
@@ -337,12 +331,21 @@ public:
     return std::sqrt(squaredNorm());
   }
 
+  /* inverse()
+   *
+   * Returns the multicomplex inverse of a scalar.
+   */
+  constexpr scalar inverse () const {
+    const subscalar reinv = (real * real + imag * imag).inverse();
+    return {real * reinv, -imag * reinv};
+  }
+
   /* scalar::R()
    *
    * Return a scalar with unit value on its real coefficient.
    */
   static inline constexpr scalar R () {
-    return scalar(subscalar::R(), subscalar());
+    return {subscalar::R(), subscalar()};
   }
 
   /* scalar::I()
@@ -350,7 +353,7 @@ public:
    * Return a scalar with unit value on its pure complex coefficient.
    */
   static inline constexpr scalar I () {
-    return scalar(subscalar(), subscalar::R());
+    return {subscalar(), subscalar::R()};
   }
 
   /* scalar::exp<m,n>()
@@ -384,6 +387,28 @@ private:
     (*this)[i] = first;
     if constexpr (i + 1 < n)
       load_coeffs<i + 1, n>(rest...);
+  }
+
+  /* compare()
+   *
+   * Three-way comparison function.
+   */
+  constexpr hx::ordering compare (const scalar& b) const {
+    const double L = squaredNorm();
+    const double R = b.squaredNorm();
+
+    if (L < R) {
+      return hx::less;
+    }
+    else if (L > R) {
+      return hx::greater;
+    }
+    else {
+      if (real == b.real && imag == b.imag)
+        return hx::equal;
+      else
+        return hx::equivalent;
+    }
   }
 };
 
@@ -499,6 +524,14 @@ public:
   friend std::ostream& operator<< (std::ostream& os, const scalar& obj) {
     os << obj.real;
     return os;
+  }
+
+  /* inverse()
+   *
+   * Returns the multiplicative inverse of a real number.
+   */
+  constexpr scalar inverse() const {
+    return 1 / real;
   }
 
   /* scalar<0>::R()

@@ -189,6 +189,14 @@ public:
     TS_ASSERT_EQUALS(x.norm(), std::sqrt(86));
   }
 
+  /* inverse() */
+  void testInverse () {
+    hx::scalar<2> x{3, 4, 5, 6}, y, z;
+    y = x.inverse();
+    z = x * y - hx::scalar<2>::R();
+    TS_ASSERT_DELTA(z.norm(), 0, 1e-12);
+  }
+
   /* scalar::R() */
   void testR () {
     auto x = hx::scalar<2>::R();
