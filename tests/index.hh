@@ -23,6 +23,15 @@ public:
     assert_values(idxA, idxB);
   }
 
+  /* index = index */
+  void testCopyAssignment () {
+    hx::index<7, 7> idxA, idxB{1, 5};
+    idxA = {3, 4};
+    assert_values(idxA, {3, 4});
+    idxA = idxB;
+    assert_values(idxB, {1, 5});
+  }
+
   /* idx[i] = v */
   void testSubscriptAssignment () {
     hx::index<7, 7> idx;

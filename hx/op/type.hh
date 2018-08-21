@@ -9,7 +9,7 @@
 
 namespace hx::op {
 
-enum type : std::size_t { plus, minus, times, divide };
+enum type : std::size_t { plus, minus, times, divide, conjugate };
 
 /* namespace hx::op */ }
 

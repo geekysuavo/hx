@@ -14,6 +14,12 @@ auto operator- (const T& op) {
   return hx::op::unary<hx::op::minus, const T&>(op);
 }
 
+/* ~array */
+template<typename T, typename = std::enable_if_t<hx::is_array_v<T>>>
+auto operator~ (const T& op) {
+  return hx::op::unary<hx::op::conjugate, const T&>(op);
+}
+
 /* --- */
 
 /* array + array */

@@ -54,6 +54,18 @@ public:
     assert_values(x, {{1, 0, 3, 0, 0}});
   }
 
+  /* ~array */
+  void testConjugate () {
+    using T = hx::scalar<1>;
+    using A = hx::array<T, 3>;
+    T xdata[3] = { {1, 2}, {3, 4}, {5, 6} };
+    T ydata[3] = { {1, -2}, {3, -4}, {5, -6} };
+    A x{xdata}, y;
+    y = ~x;
+    assert_values(x, A{xdata});
+    assert_values(y, A{ydata});
+  }
+
   /* -array */
   void testUnaryMinus () {
     hx::array<int, 3> x{{1, 2, 3}}, y;
