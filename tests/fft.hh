@@ -2,50 +2,333 @@
 #include "../hx/core.hh"
 #include <cxxtest/TestSuite.h>
 
-class FFT : public CxxTest::TestSuite {
+/* assert_error()
+ *
+ * Check that the norm of the difference between two arrays
+ * is less than a hard-coded threshold (within the function).
+ */
+template<typename T, std::size_t N>
+static inline void assert_error (const T (&a) [N], const T (&b) [N]) {
+  /* define the threshold. */
+  constexpr double tolerance = 1e-12;
+
+  /* compute the error sum of squares. */
+  double err = 0;
+  for (std::size_t i = 0; i < N; i++)
+    err += (a[i] - b[i]).squaredNorm();
+
+  /* check that the norm is within the tolerance. */
+  TS_ASSERT_DELTA(err, 0, tolerance);
+}
+
+/* Test suite for hx::fft::shuffle
+ */
+class Shuffle : public CxxTest::TestSuite {
 public:
-  void testShuffle () {
-    TS_FAIL("unimplemented");
+  void test2x2 () { ttest<2, 2, 1>(); ttest<2, 2, 3>(); }
+  void test2x3 () { ttest<2, 3, 1>(); ttest<2, 3, 5>(); }
+  void test2x5 () { ttest<2, 5, 1>(); ttest<2, 5, 3>(); }
+  void test3x3 () { ttest<3, 3, 1>(); ttest<3, 3, 2>(); }
+  void test3x5 () { ttest<3, 5, 1>(); ttest<3, 5, 2>(); }
+  void test5x5 () { ttest<5, 5, 1>(); ttest<5, 5, 3>(); }
+
+private:
+  /* ttest<m, n, s>()
+   *
+   * Template function for testing shuffles of size (m,n)
+   * with stride s.
+   */
+  template<std::size_t m, std::size_t n, std::size_t s>
+  static inline void ttest () {
+    /* declare the shuffle and data arrays. */
+    constexpr hx::fft::shuffle<int, n, m, s> shuf;
+    constexpr std::size_t N = m * n * s;
+    int x[N], y[N];
+
+    /* initialize the arrays to zero. */
+    for (int i = 0; i < N; i++)
+      x[i] = y[i] = 0;
+
+    /* initialize the input array to 1, 2, 3, ... m*n. */
+    for (int i = 0; i < m * n; i++)
+      x[i * s] = i + 1;
+
+    /* initialize the output array to the shuffled result. */
+    for (int i = 0; i < m; i++)
+      for (int j = 0; j < n; j++)
+        y[(i * n + j) * s] = j * m + i + 1;
+
+    /* shuffle and check the result. */
+    shuf(x);
+    TS_ASSERT_SAME_DATA(x, y, N * sizeof(int));
+  }
+};
+
+/* Test suite for base hx::fft::block's
+ */
+class Block : public CxxTest::TestSuite {
+public:
+  /* N = 2 */
+  void test2 () {
+    constexpr std::size_t n = 2;
+    hx::fft::block<hx::scalar<1>, hx::fft::fwd, 1, n, 1> blk;
+    hx::scalar<1> x[n] = { {2, 3}, {5, 7} };
+    hx::scalar<1> y[n] = { {7, 10}, {-3, -4} };
+    blk(x);
+    assert_error(x, y);
   }
 
-  void testBlock2 () {
-    TS_FAIL("unimplemented");
+  /* N = 3 */
+  void test3 () {
+    constexpr std::size_t n = 3;
+    hx::fft::block<hx::scalar<1>, hx::fft::fwd, 1, n, 1> blk;
+    hx::scalar<1> x[n] = { {2, 3}, {5, 7}, {11, 13} };
+    hx::scalar<1> y[n] = {
+      {  1.80000000000000000000e+01,  2.30000000000000000000e+01 },
+      { -1.11961524227066320236e+01, -1.80384757729336797638e+00 },
+      { -8.03847577293367976381e-01, -1.21961524227066320236e+01 } };
+    blk(x);
+    assert_error(x, y);
   }
 
-  void testBlock3 () {
-    TS_FAIL("unimplemented");
+  /* N = 5 */
+  void test5 () {
+    constexpr std::size_t n = 5;
+    hx::fft::block<hx::scalar<1>, hx::fft::fwd, 1, n, 1> blk;
+    hx::scalar<1> x[n] = { {2, 3}, {5, 7}, {11, 13}, {17, 19}, {23, 27} };
+    hx::scalar<1> y[n] = {
+      {  5.80000000000000000000e+01,  6.90000000000000000000e+01 },
+      { -3.45478418396579058935e+01,  8.26376279581749706438e+00 },
+      { -1.80493659480785417770e+01, -9.74423854525629806744e+00 },
+      { -5.95063405192145733480e+00, -1.94918294322434917376e+01 },
+      {  1.05478418396579094463e+01, -3.30276948183177054830e+01 } };
+    blk(x);
+    assert_error(x, y);
+  }
+};
+
+/* Test suite for composite transforms.
+ */
+class Composite : public CxxTest::TestSuite {
+public:
+  /* N = 4 */
+  void test2x2 () {
+    constexpr std::size_t n = 4;
+    hx::fft::forward<hx::scalar<1>, n> f;
+    hx::scalar<1> x[n]; init_values(x);
+    hx::scalar<1> y[n] = { {16, 20}, {-8, 0}, {-4, -4}, {0, -8} };
+    f(x);
+    assert_error(x, y);
   }
 
-  void testBlock5 () {
-    TS_FAIL("unimplemented");
+  /* N = 6 */
+  void test2x3 () {
+    constexpr std::size_t n = 6;
+    hx::fft::forward<hx::scalar<1>, n> f;
+    hx::scalar<1> x[n]; init_values(x);
+    hx::scalar<1> y[n] = {
+      {  3.60000000000000000000e+01,  4.20000000000000000000e+01 },
+      { -1.63923048454132640472e+01,  4.39230484541326404724e+00 },
+      { -9.46410161513775349817e+00, -2.53589838486224561365e+00 },
+      { -6.00000000000000000000e+00, -6.00000000000000000000e+00 },
+      { -2.53589838486224561365e+00, -9.46410161513775349817e+00 },
+      {  4.39230484541326404724e+00, -1.63923048454132640472e+01 } };
+    f(x);
+    assert_error(x, y);
   }
 
-  void testComposite2x2 () {
-    TS_FAIL("unimplemented");
+  /* N = 10 */
+  void test2x5 () {
+    constexpr std::size_t n = 10;
+    hx::fft::forward<hx::scalar<1>, n> f;
+    hx::scalar<1> x[n]; init_values(x);
+    hx::scalar<1> y[n] = {
+      {  1.00000000000000000000e+02,  1.10000000000000000000e+02 },
+      { -4.07768353717525329216e+01,  2.07768353717525329216e+01 },
+      { -2.37638192047117335903e+01,  3.76381920471173359033e+00 },
+      { -1.72654252800536056611e+01, -2.73457471994639433888e+00 },
+      { -1.32491969623290639646e+01, -6.75080303767093603540e+00 },
+      { -1.00000000000000000000e+01, -1.00000000000000000000e+01 },
+      { -6.75080303767093603540e+00, -1.32491969623290639646e+01 },
+      { -2.73457471994639433888e+00, -1.72654252800536056611e+01 },
+      {  3.76381920471173359033e+00, -2.37638192047117335903e+01 },
+      {  2.07768353717525329216e+01, -4.07768353717525329216e+01 } };
+    f(x);
+    assert_error(x, y);
   }
 
-  void testComposite2x3 () {
-    TS_FAIL("unimplemented");
+  /* N = 9 */
+  void test3x3 () {
+    constexpr std::size_t n = 9;
+    hx::fft::forward<hx::scalar<1>, n> f;
+    hx::scalar<1> x[n]; init_values(x);
+    hx::scalar<1> y[n] = {
+      {  8.10000000000000000000e+01,  9.00000000000000000000e+01 },
+      { -3.37272967750916023988e+01,  1.57272967750916023988e+01 },
+      { -1.97257823333478867767e+01,  1.72578233334789210573e+00 },
+      { -1.41961524227066320236e+01, -3.80384757729336797638e+00 },
+      { -1.05869428263761804487e+01, -7.41305717362381511037e+00 },
+      { -7.41305717362381511037e+00, -1.05869428263761804487e+01 },
+      { -3.80384757729336797638e+00, -1.41961524227066320236e+01 },
+      {  1.72578233334789210573e+00, -1.97257823333478867767e+01 },
+      {  1.57272967750916023988e+01, -3.37272967750916023988e+01 } };
+    f(x);
+    assert_error(x, y);
   }
 
-  void testComposite2x5 () {
-    TS_FAIL("unimplemented");
+  /* N = 15 */
+  void test3x5 () {
+    constexpr std::size_t n = 15;
+    hx::fft::forward<hx::scalar<1>, n> f;
+    hx::scalar<1> x[n]; init_values(x);
+    hx::scalar<1> y[n] = {
+      {  2.25000000000000000000e+02,  2.40000000000000000000e+02 },
+      { -8.55694516421768156533e+01,  5.55694516421768156533e+01 },
+      { -4.86905516085632399381e+01,  1.86905516085632399381e+01 },
+      { -3.56457288070675986091e+01,  5.64572880706760216185e+00 },
+      { -2.85060606644676006738e+01, -1.49393933553239932621e+00 },
+      { -2.36602540378443855218e+01, -6.33974596215561447821e+00 },
+      { -1.98737954434935950587e+01, -1.01262045565064049413e+01 },
+      { -1.65765635289851473999e+01, -1.34234364710148526001e+01 },
+      { -1.34234364710148526001e+01, -1.65765635289851473999e+01 },
+      { -1.01262045565064049413e+01, -1.98737954434935950587e+01 },
+      { -6.33974596215561447821e+00, -2.36602540378443855218e+01 },
+      { -1.49393933553239932621e+00, -2.85060606644676006738e+01 },
+      {  5.64572880706760216185e+00, -3.56457288070675986091e+01 },
+      {  1.86905516085632399381e+01, -4.86905516085632399381e+01 },
+      {  5.55694516421768156533e+01, -8.55694516421768156533e+01 } };
+    f(x);
+    assert_error(x, y);
   }
 
-  void testComposite3x3 () {
-    TS_FAIL("unimplemented");
+  /* N = 25 */
+  void test5x5 () {
+    constexpr std::size_t n = 25;
+    hx::fft::forward<hx::scalar<1>, n> f;
+    hx::scalar<1> x[n]; init_values(x);
+    hx::scalar<1> y[n] = {
+      {  6.25000000000000000000e+02,  6.50000000000000000000e+02 },
+      { -2.22895377207645651652e+02,  1.72895377207645651652e+02 },
+      { -1.22368571373246481926e+02,  7.23685713732464819259e+01 },
+      { -8.81427922361826290398e+01,  3.81427922361826290398e+01 },
+      { -7.04748311820266479799e+01,  2.04748311820266764016e+01 },
+      { -5.94095480117793357522e+01,  9.40954801177933575218e+00 },
+      { -5.16222960081197967952e+01,  1.62229600811978968977e+00 },
+      { -4.56817986493118866065e+01, -4.31820135068810628809e+00 },
+      { -4.08654824386036921169e+01, -9.13451756139630077769e+00 },
+      { -3.67641070303062633684e+01, -1.32358929696937224207e+01 },
+      { -3.31229924058226572470e+01, -1.68770075941773427530e+01 },
+      { -2.97690050554641629788e+01, -2.02309949445358370212e+01 },
+      { -2.65728666813412388592e+01, -2.34271333186587575881e+01 },
+      { -2.34271333186587682462e+01, -2.65728666813412424119e+01 },
+      { -2.02309949445358512321e+01, -2.97690050554641842950e+01 },
+      { -1.68770075941773427530e+01, -3.31229924058226572470e+01 },
+      { -1.32358929696937082099e+01, -3.67641070303062917901e+01 },
+      { -9.13451756139630077769e+00, -4.08654824386037063277e+01 },
+      { -4.31820135068810451173e+00, -4.56817986493118866065e+01 },
+      {  1.62229600811978968977e+00, -5.16222960081197967952e+01 },
+      {  9.40954801177933575218e+00, -5.94095480117793357522e+01 },
+      {  2.04748311820266550853e+01, -7.04748311820266479799e+01 },
+      {  3.81427922361826290398e+01, -8.81427922361826290398e+01 },
+      {  7.23685713732464819259e+01, -1.22368571373246481926e+02 },
+      {  1.72895377207645651652e+02, -2.22895377207645651652e+02 } };
+    f(x);
+    assert_error(x, y);
   }
 
-  void testComposite3x5 () {
-    TS_FAIL("unimplemented");
+  /* N = 30 */
+  void test2x3x5 () {
+    constexpr std::size_t n = 30;
+    hx::fft::forward<hx::scalar<1>, n> f;
+    hx::scalar<1> x[n]; init_values(x);
+    hx::scalar<1> y[n] = {
+      {  9.00000000000000000000e+02,  9.30000000000000000000e+02 },
+      { -3.15430933626677585835e+02,  2.55430933626677528991e+02 },
+      { -1.71138903284353631307e+02,  1.11138903284353602885e+02 },
+      { -1.22330506115257605870e+02,  6.23305061152576058703e+01 },
+      { -9.73811032171264798762e+01,  3.73811032171265011925e+01 },
+      { -8.19615242270663202362e+01,  2.19615242270663202362e+01 },
+      { -7.12914576141351972183e+01,  1.12914576141352043237e+01 },
+      { -6.33183754448757554201e+01,  3.31837544487577673635e+00 },
+      { -5.70121213289352013476e+01, -2.98787867106481996871e+00 },
+      { -5.17962758401608240888e+01, -8.20372415983916880577e+00 },
+      { -4.73205080756887781490e+01, -1.26794919243112360618e+01 },
+      { -4.33568605592560345485e+01, -1.66431394407439086081e+01 },
+      { -3.97475908869871901175e+01, -2.02524091130128098825e+01 },
+      { -3.63766968501006786596e+01, -2.36233031498993248931e+01 },
+      { -3.31531270579702876944e+01, -2.68468729420297087529e+01 },
+      { -3.00000000000000106581e+01, -3.00000000000000035527e+01 },
+      { -2.68468729420297123056e+01, -3.31531270579702805890e+01 },
+      { -2.36233031498993355513e+01, -3.63766968501006502379e+01 },
+      { -2.02524091130128098825e+01, -3.97475908869871901175e+01 },
+      { -1.66431394407439086081e+01, -4.33568605592560771811e+01 },
+      { -1.26794919243112147456e+01, -4.73205080756887639382e+01 },
+      { -8.20372415983917235849e+00, -5.17962758401608311942e+01 },
+      { -2.98787867106479865242e+00, -5.70121213289352084530e+01 },
+      {  3.31837544487576252550e+00, -6.33183754448757909472e+01 },
+      {  1.12914576141352043237e+01, -7.12914576141351972183e+01 },
+      {  2.19615242270663308943e+01, -8.19615242270663202362e+01 },
+      {  3.73811032171264727708e+01, -9.73811032171264656654e+01 },
+      {  6.23305061152576129757e+01, -1.22330506115257605870e+02 },
+      {  1.11138903284353617096e+02, -1.71138903284353631307e+02 },
+      {  2.55430933626677500570e+02, -3.15430933626677528991e+02 } };
+    f(x);
+    assert_error(x, y);
   }
 
-  void testComposite5x5 () {
-    TS_FAIL("unimplemented");
+private:
+  /* init_values<N>()
+   *
+   * Set an array of hx::scalar<1>'s to {{1,2},{3,4},...}.
+   */
+  template<std::size_t N>
+  static inline void init_values (hx::scalar<1> (&x) [N]) {
+    for (std::size_t i = 0; i < N; i++)
+      x[i] = { 2*i+1, 2*i+2 };
   }
+};
 
-  void testComposite2x3x5 () {
-    TS_FAIL("unimplemented");
+/* Test suite for inverse transforms.
+ */
+class Inverse : public CxxTest::TestSuite {
+public:
+  void test2 () { ttest<2>(); }
+  void test3 () { ttest<3>(); }
+  void test5 () { ttest<5>(); }
+  void test6 () { ttest<6>(); }
+  void test9 () { ttest<9>(); }
+  void test10 () { ttest<10>(); }
+  void test15 () { ttest<15>(); }
+  void test30 () { ttest<30>(); }
+  void test128 () { ttest<128>(); }
+
+private:
+  /* ttest<N>()
+   *
+   * Template function for testing inverse transforms of size N.
+   */
+  template<std::size_t N>
+  static inline void ttest () {
+    /* declare the transform and data arrays. */
+    hx::fft::forward<hx::scalar<1>, N> f;
+    hx::fft::inverse<hx::scalar<1>, N> g;
+    hx::scalar<1> x[N], y[N];
+
+    /* initialize the data arrays. */
+    for (std::size_t i = 0; i < N; i++)
+      x[i] = y[i] = { double(i + 1), double(i % 2 ? 1 : -1) };
+
+    /* apply a forward and inverse transform. */
+    f(x);
+    g(x);
+
+    /* check the error between the two arrays. */
+    double err = 0;
+    for (std::size_t i = 0; i < N; i++)
+      err += (y[i] - x[i] / N).squaredNorm();
+
+    /* assert the error is within acceptable limits. */
+    TS_ASSERT_DELTA(std::sqrt(err), 0, 1e-12);
   }
 };
 

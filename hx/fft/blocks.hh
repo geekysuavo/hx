@@ -80,7 +80,7 @@ private:
     constexpr double alpha = 2 * sp2 * sp2;
 
     /* build and return a Type from the computed coefficients. */
-    return Type{alpha * Scalar::R() - beta * Scalar::I()};
+    return Type{Scalar::R() * alpha - Scalar::I() * beta};
   }
 
   /* twiddles_impl()
