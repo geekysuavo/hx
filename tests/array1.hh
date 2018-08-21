@@ -192,5 +192,12 @@ public:
     hx::array<int, 5> x;
     x.foreach_dim([] (auto dim) { TS_ASSERT_EQUALS(dim.value, 0); });
   }
+
+  /* foreach() */
+  void testForEach () {
+    hx::array<int, 5> x{{2, 3, 5, 7, 11}};
+    x.foreach([] (auto& z) { z = 1 << z; });
+    assert_values(x, {{4, 8, 32, 128, 2048}});
+  }
 };
 

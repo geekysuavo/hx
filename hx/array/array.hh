@@ -266,6 +266,17 @@ public:
       foreach_dim<Lambda, i + 1, n>(f);
   }
 
+  /* foreach()
+   *
+   * Execute a function for each element of an array.
+   */
+  template<typename Lambda>
+  void foreach (const Lambda& f) {
+    index_type idx;
+    do { f((*this)[idx]); }
+    while (idx++);
+  }
+
 private:
   /* Internal state:
    *  @data: OuterDim-element array of inner_type's.
@@ -494,6 +505,16 @@ public:
   template<typename Lambda>
   inline void foreach_dim (const Lambda& f) {
     f(std::integral_constant<std::size_t, 0>{});
+  }
+
+  /* foreach()
+   *
+   * Base implementation of foreach() for one-dimensional arrays.
+   */
+  template<typename Lambda>
+  void foreach (const Lambda& f) {
+    for (std::size_t i = 0; i < Dim; i++)
+      f(data[i]);
   }
 
 private:

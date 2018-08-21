@@ -204,5 +204,12 @@ public:
       i++;
     });
   }
+
+  /* foreach() */
+  void testForEach () {
+    hx::array<int, 2, 3> x{{2, 3, 5, 7, 11, 13}};
+    x.foreach([] (auto& z) { z = 1 << z; });
+    assert_values(x, {{4, 8, 32, 128, 2048, 8192}});
+  }
 };
 
