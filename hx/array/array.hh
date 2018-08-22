@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "../op/dot.hh"
 #include "../op/unary.hh"
 #include "../op/binary.hh"
 #include "../op/schedules.hh"
@@ -87,6 +88,22 @@ public:
 
   /* delete the implicit copy constructor. */
   array (const array& x) = delete;
+
+  /* operator=(dot)
+   *
+   * Assignment operator from dot products.
+   */
+  template<typename Ta, typename Tb, std::size_t n, std::size_t k>
+  array& operator= (const hx::op::dot<Ta, Tb, OuterDim, n, n, k>& expr) {
+    static_assert(sizeof...(InnerDims) == 1);
+    static_assert(k == (InnerDims * ...));
+    index_type idx;
+    do {
+      (*this)[idx] = expr[idx];
+    }
+    while (idx++);
+    return *this;
+  }
 
   /* operator=(unary)
    *
@@ -364,6 +381,21 @@ public:
 
   /* delete the implicit copy constructor. */
   array (const array& x) = delete;
+
+  /* operator=(dot)
+   *
+   * Assignment operator from dot products.
+   */
+  template<typename Ta, typename Tb,
+           std::size_t m, std::size_t n, std::size_t k>
+  array& operator= (const hx::op::dot<Ta, Tb, m, n, n, k>& expr) {
+    static_assert((m == Dim && k == 1) ||
+                  (m == 1 && k == Dim));
+    for (std::size_t i = 0; i < Dim; i++)
+      data[i] = expr[i];
+
+    return *this;
+  }
 
   /* operator=(unary)
    *

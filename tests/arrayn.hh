@@ -27,6 +27,17 @@ public:
     assert_values(x, y);
   }
 
+  /* array = dot */
+  void testDotAssignment () {
+    hx::array<int, 2, 3> A{{1, 2, 3, 4, 5, 6}};
+    hx::array<int, 3, 2> B{{6, 5, 4, 3, 2, 1}};
+    hx::array<int, 2, 2> C;
+    C = hx::dot(A, B);
+    assert_values(A, {{1, 2, 3, 4, 5, 6}});
+    assert_values(B, {{6, 5, 4, 3, 2, 1}});
+    assert_values(C, {{20, 14, 56, 41}});
+  }
+
   /* array = array % schedule [extraction] */
   void testExtractAssignment () {
     hx::schedule<3, 2, 3> s{{ {0, 0}, {1, 1}, {1, 2} }};

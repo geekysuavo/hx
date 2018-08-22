@@ -13,6 +13,7 @@
 
 #include "array/overloads.hh"
 #include "op/overloads.hh"
+#include "dot.hh"
 
 #include "vector.hh"
 
