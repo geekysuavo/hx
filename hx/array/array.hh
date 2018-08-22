@@ -294,6 +294,15 @@ public:
     while (idx++);
   }
 
+  /* raw_data()
+   *
+   * Return a pointer to the raw array of Type's.
+   */
+  Type* raw_data () {
+    index_type idx;
+    return &((*this)[idx]);
+  }
+
 private:
   /* Internal state:
    *  @data: OuterDim-element array of inner_type's.
@@ -547,6 +556,14 @@ public:
   void foreach (const Lambda& f) {
     for (std::size_t i = 0; i < Dim; i++)
       f(data[i]);
+  }
+
+  /* raw_data()
+   *
+   * Return a pointer to the raw array of Type's.
+   */
+  Type* raw_data () {
+    return &(data[0]);
   }
 
 private:

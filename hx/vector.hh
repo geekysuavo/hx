@@ -9,12 +9,13 @@
 
 namespace hx {
 
-/* hx::vector<Array, Dim>
+/* hx::vector<Array, Dim, Len>
  *
  * View of the data contained in an array type Array along
  * the dimension Dim, which follows pointer-like semantics.
  */
-template<typename Array, std::size_t Dim>
+template<typename Array, std::size_t Dim = 0,
+         std::size_t Len = Array::template shape<Dim>>
 class vector {
 public:
   /* Type information:
@@ -23,6 +24,12 @@ public:
    */
   using base_type = typename Array::base_type;
   using index_type = typename Array::index_type;
+
+  /* vector(Array)
+   *
+   * Constructor taking only an array.
+   */
+  constexpr vector (Array& x) : xdata(x.raw_data()) {}
 
   /* vector(Array,index_type)
    *
@@ -51,8 +58,8 @@ public:
    * Offset/re-addressing operator. Returns a new vector<Array,Dim>
    * that begins at the requested element of the vector view.
    */
-  constexpr auto operator+ (std::size_t offset) const {
-    return hx::vector<Array, Dim>(xdata + offset * Stride);
+  constexpr vector operator+ (std::size_t offset) const {
+    return {xdata + offset * Stride};
   }
 
 private:

@@ -17,6 +17,14 @@ public:
           x[i][j][k] = 500000 + 100*i + 10*j + k;
   }
 
+  /* vector{array} */
+  void testArrayConstructor () {
+    hx::vector v{x};
+    TS_ASSERT_EQUALS(v[0], x[0][0][0]);
+    TS_ASSERT_EQUALS(v[1], x[1][0][0]);
+    TS_ASSERT_EQUALS(v[2], x[2][0][0]);
+  }
+
   /* vector{array, index} */
   void testArrayIndexConstructor () {
     hx::vector<decltype(x), 0> v0{x, {0, 0, 0}};
