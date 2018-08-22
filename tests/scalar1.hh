@@ -3,12 +3,6 @@
 
 class Scalar1 : public CxxTest::TestSuite {
 public:
-  /* is_scalar_v */
-  void testTypeCheck () {
-    TS_ASSERT_EQUALS(hx::is_scalar_v<double>, false);
-    TS_ASSERT_EQUALS(hx::is_scalar_v<hx::scalar<1>>, true);
-  }
-
   /* scalar{} */
   void testDefaultConstructor () {
     hx::scalar<1> x;
