@@ -5,6 +5,32 @@
 
 #include "hx/core.hh"
 
+/* fwd()
+ *
+ * Forward Fourier transform operator.
+ */
+template<typename T, typename = std::enable_if_t<hx::is_array_v<T>>>
+inline void fwd (T& x) {
+  using Type = typename T::base_type;
+  x.template foreach_dim([&x] (auto dim) {
+    hx::fft::forward<Type, T::template shape<dim.value>> f;
+    x.template foreach_vector<dim.value>(f);
+  });
+}
+
+/* inv()
+ *
+ * Inverse Fourier transform operator.
+ */
+template<typename T, typename = std::enable_if_t<hx::is_array_v<T>>>
+inline void inv (T& x) {
+  using Type = typename T::base_type;
+  x.template foreach_dim([&x] (auto dim) {
+    hx::fft::inverse<Type, T::template shape<dim.value>> f;
+    x.template foreach_vector<dim.value>(f);
+  });
+}
+
 int main () {
   /* iters: number of iterations. */
   constexpr std::size_t iters = 500;
@@ -91,10 +117,6 @@ int main () {
    { -4.293167128e-03, -4.712118702e-03 }
   };
 
-  /* build forward and inverse fourier transforms. */
-  hx::fft::forward<X::base_type, X::shape<0>> fwd;
-  hx::fft::inverse<X::base_type, X::shape<0>> inv;
-
   /* initialize the schedule and input data. */
   Y y{obs};
   S sched{ids};
@@ -105,7 +127,7 @@ int main () {
 
   /* compute the initial thresholding value. */
   dx = b;
-  fwd(dx.raw_data());
+  fwd(dx);
   double thresh = mu * dx.max().norm();
 
   // iterate.
@@ -113,7 +135,7 @@ int main () {
     /* compute the current spectral estimate. */
     dx = b - x;
     dx *= sched;
-    fwd(dx.raw_data());
+    fwd(dx);
     fx = fx + dx;
 
     /* apply the l1 function. */
@@ -125,14 +147,14 @@ int main () {
 
     /* update the time-domain estimate. */
     x = fx / n;
-    inv(x.raw_data());
+    inv(x);
 
     /* update the threshold. */
     thresh *= mu;
   }
 
   /* output the result. */
-  fwd(x.raw_data());
+  fwd(x);
   x.foreach([] (auto& z) { std::cout << z << "\n"; });
 }
 
