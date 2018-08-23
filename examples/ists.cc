@@ -105,7 +105,7 @@ int main () {
 
   /* compute the initial thresholding value. */
   dx = b;
-  fwd(&dx[0]);
+  fwd(dx.raw_data());
   double thresh = mu * dx.max().norm();
 
   // iterate.
@@ -113,7 +113,7 @@ int main () {
     /* compute the current spectral estimate. */
     dx = b - x;
     dx *= sched;
-    fwd(&dx[0]);
+    fwd(dx.raw_data());
     fx = fx + dx;
 
     /* apply the l1 function. */
@@ -125,14 +125,14 @@ int main () {
 
     /* update the time-domain estimate. */
     x = fx / n;
-    inv(&x[0]);
+    inv(x.raw_data());
 
     /* update the threshold. */
     thresh *= mu;
   }
 
   /* output the result. */
-  fwd(&x[0]);
+  fwd(x.raw_data());
   x.foreach([] (auto& z) { std::cout << z << "\n"; });
 }
 

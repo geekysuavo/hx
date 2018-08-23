@@ -16,6 +16,7 @@
 #include "dot.hh"
 
 #include "vector.hh"
+#include "matrix.hh"
 
 #include "fft/direction.hh"
 #include "fft/shuffle.hh"

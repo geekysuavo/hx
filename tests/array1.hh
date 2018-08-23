@@ -26,28 +26,6 @@ public:
     assert_values(x, y);
   }
 
-  /* array = dot */
-  void testDotAssignment () {
-    hx::array<int, 2, 3> A{{1, 2, 3, 4, 5, 6}};
-    hx::array<int, 3> x{{7, 8, 9}}, z;
-    hx::array<int, 2> y;
-
-    y = hx::dot(A, x);
-    assert_values(A, {{1, 2, 3, 4, 5, 6}});
-    assert_values(x, {{7, 8, 9}});
-    assert_values(y, {{50, 122}});
-
-    z = hx::dot(y, A);
-    assert_values(y, {{50, 122}});
-    assert_values(A, {{1, 2, 3, 4, 5, 6}});
-    assert_values(z, {{538, 710, 882}});
-
-    auto xz = hx::dot(x, z);
-    assert_values(x, {{7, 8, 9}});
-    assert_values(z, {{538, 710, 882}});
-    TS_ASSERT_EQUALS(xz, 17384);
-  }
-
   /* array = array % schedule [extraction] */
   void testExtractAssignment () {
     hx::schedule<2, 5> s{{0, 2}};

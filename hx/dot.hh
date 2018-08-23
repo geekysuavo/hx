@@ -6,39 +6,53 @@
 #pragma once
 
 #include "op/dot.hh"
+#include "vector.hh"
+#include "matrix.hh"
 
 namespace hx {
 
 /* matrix * matrix */
-template<typename T, std::size_t m, std::size_t n, std::size_t l>
-auto dot (const hx::array<T, m, n>& A, const hx::array<T, n, l>& B) {
-  using Ta = hx::array<T, m, n>;
-  using Tb = hx::array<T, n, l>;
-  return hx::op::dot<Ta, Tb, m, n, n, l>(A, B);
+template<typename Ta, typename Tb,
+         std::size_t ia, std::size_t ja,
+         std::size_t ib, std::size_t jb,
+         std::size_t m, std::size_t n, std::size_t l>
+auto operator* (const hx::matrix<Ta, ia, ja, m, n>& A,
+                const hx::matrix<Tb, ib, jb, n, l>& B) {
+  return hx::op::dot<hx::matrix<Ta, ia, ja, m, n>,
+                     hx::matrix<Tb, ib, jb, n, l>,
+                     m, n, n, l>(A, B);
 }
 
-/* matrix . column-vector */
-template<typename T, std::size_t m, std::size_t n>
-auto dot (const hx::array<T, m, n>& A, const hx::array<T, n>& x) {
-  using Ta = hx::array<T, m, n>;
-  using Tx = hx::array<T, n>;
-  return hx::op::dot<Ta, Tx, m, n, n, 1>(A, x);
+/* matrix * column-vector */
+template<typename Ta, typename Tx,
+         std::size_t ia, std::size_t ja, std::size_t ix,
+         std::size_t m, std::size_t n>
+auto operator* (const hx::matrix<Ta, ia, ja, m, n>& A,
+                const hx::vector<Tx, ix, n>& x) {
+  return hx::op::dot<hx::matrix<Ta, ia, ja, m, n>,
+                     hx::vector<Tx, ix, n>,
+                     m, n, n, 1>(A, x);
 }
 
-/* row-vector . matrix */
-template<typename T, std::size_t m, std::size_t n>
-auto dot (const hx::array<T, m>& y, const hx::array<T, m, n>& A) {
-  using Ty = hx::array<T, m>;
-  using Ta = hx::array<T, m, n>;
-  return hx::op::dot<Ty, Ta, 1, m, m, n>(y, A);
+/* row-vector * matrix */
+template<typename Ta, typename Tx,
+         std::size_t ia, std::size_t ja, std::size_t ix,
+         std::size_t m, std::size_t n>
+auto operator* (const hx::vector<Tx, ix, m>& x,
+                const hx::matrix<Ta, ia, ja, m, n>& A) {
+  return hx::op::dot<hx::vector<Tx, ix, m>,
+                     hx::matrix<Ta, ia, ja, m, n>,
+                     1, m, m, n>(x, A);
 }
 
-/* row-vector . column-vector */
-template<typename T, std::size_t n>
-auto dot (const hx::array<T, n>& y, const hx::array<T, n>& x) {
-  auto sum = y[0] * x[0];
+/* row-vector * column-vector */
+template<typename Tx, typename Ty,
+         std::size_t ix, std::size_t iy, std::size_t n>
+auto operator* (const hx::vector<Tx, ix, n>& x,
+                const hx::vector<Ty, iy, n>& y) {
+  auto sum = x(0) * y(0);
   for (std::size_t i = 1; i < n; i++)
-    sum += y[i] * x[i];
+    sum += x(i) * y(i);
 
   return sum;
 }

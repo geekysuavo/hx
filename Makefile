@@ -5,8 +5,8 @@ test:
 	@$(MAKE) -C tests test
 
 clean:
-	@echo " CLEAN"
 	@$(MAKE) -C tests clean
+	@$(MAKE) -C examples clean
 
 again: clean all
 
