@@ -543,10 +543,11 @@ public:
   }
 };
 
-/* template argument deduction guide for scalar()
+/* template argument deduction guide for scalar{}
  */
 template<std::size_t Dim>
-scalar(const scalar<Dim>& a, const scalar<Dim>& b) -> scalar<Dim + 1>;
+scalar(const hx::scalar<Dim>& a, const hx::scalar<Dim>& b)
+ -> scalar<Dim + 1>;
 
 /* hx::I<Dim>
  *
