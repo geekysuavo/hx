@@ -7,7 +7,7 @@ CXXFLAGS+= -ftemplate-depth=2048
 GEN=cxxtestgen
 GENFLAGS=--error-printer
 
-TEST=array fft index matrix scalar schedule trig vector
+TEST=array dims fft index matrix scalar schedule trig vector
 SRC=$(addsuffix .cc,$(TEST))
 HDR=$(addsuffix .hh,$(TEST))
 

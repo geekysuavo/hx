@@ -6,16 +6,9 @@
 #pragma once
 
 #include <iostream>
+#include "dims.hh"
 
 namespace hx {
-
-/* hx::dim<Dim>
- *
- * Dimension index class template for encapsulating
- * dimension indices into types.
- */
-template<std::size_t Dim>
-class dim {};
 
 /* hx::index<Sizes...>
  *
