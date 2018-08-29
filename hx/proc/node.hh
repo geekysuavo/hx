@@ -7,7 +7,6 @@
 
 #include <memory>
 
-#include "pass.hh"
 #include "real.hh"
 #include "zerofill.hh"
 
@@ -65,13 +64,13 @@ protected:
   In parent;
 };
 
-/* hx::proc::node<hx::array<Type, Dims...>, Proc>
+/* hx::proc::node<hx::array<Type, Dims...>, void>
  *
  * Partial specialization of the hx::proc::node class for nodes
  * which take their input from shared pointers to arrays.
  */
-template<typename Proc, typename Type, std::size_t... Dims>
-class node<hx::array<Type, Dims...>, Proc> {
+template<typename Type, std::size_t... Dims>
+class node<hx::array<Type, Dims...>, void> {
 public:
   /* In: for consistency with the general node<T,P> code above. */
   using In = hx::array<Type, Dims...>;
@@ -80,7 +79,7 @@ public:
    * output: output type of the current node's processor.
    */
   using input = In;
-  using output = typename Proc::Out;
+  using output = In;
 
   /* node()
    *
@@ -94,9 +93,7 @@ public:
    * Call operator for array-sourced processing nodes.
    */
   auto operator() () const {
-    auto out = std::make_shared<output>();
-    Proc::apply(parent, out);
-    return std::move(out);
+    return parent;
   }
 
   /* real() */
@@ -122,8 +119,8 @@ protected:
 /* template argument deduction guide for nodes constructed from
  * shared pointers to objects of type T.
  */
-template<typename T, typename P = hx::proc::pass<T>>
-node(std::shared_ptr<T>) -> node<T, P>;
+template<typename T>
+node(std::shared_ptr<T>) -> node<T, void>;
 
 /* namespace hx::proc */ }
 
