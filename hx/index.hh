@@ -52,6 +52,22 @@ public:
     load_indices<0, sizeof...(Ids)>(init...);
   }
 
+  /* operator=(index)
+   *
+   * Assignment operator from indices of equal dimensionality.
+   *
+   * The values of the right-hand-side index are copied into
+   * the current index while respecting its sizes.
+   */
+  template<std::size_t... Sz, typename = std::enable_if_t<
+           (sizeof...(Sz) == sizeof...(Sizes))>>
+  index& operator= (const hx::index<Sz...>& idx) {
+    for (std::size_t i = 0; i < n; i++)
+      ids[i] = (idx[i] < sz[i] ? idx[i] : sz[i] - 1);
+
+    return *this;
+  }
+
   /* operator[]()
    *
    * Subscripting operator. Returns a single value from the index

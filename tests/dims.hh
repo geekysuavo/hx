@@ -171,5 +171,15 @@ public:
     TS_ASSERT_EQUALS(d3, true);
     TS_ASSERT_EQUALS(c2, true);
   }
+
+  /* shift<idx, n> */
+  void testShift () {
+    constexpr auto d1 = std::is_same_v<D::shift<0,1>, hx::dims<4,3,5>>;
+    constexpr auto d2 = std::is_same_v<D::shift<1,1>, hx::dims<2,6,5>>;
+    constexpr auto d3 = std::is_same_v<D::shift<2,2>, hx::dims<2,3,20>>;
+    TS_ASSERT_EQUALS(d1, true);
+    TS_ASSERT_EQUALS(d2, true);
+    TS_ASSERT_EQUALS(d3, true);
+  }
 };
 

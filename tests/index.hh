@@ -32,6 +32,15 @@ public:
     assert_values(idxB, {1, 5});
   }
 
+  /* index<Sizes...> = index<Sz...> */
+  void testBoundedAssignment () {
+    hx::index<7, 7, 7> idxA{1, 2, 6};
+    hx::index<3, 3, 5> idxB;
+    idxB = idxA;
+    assert_values(idxA, {1, 2, 6});
+    assert_values(idxB, {1, 2, 4});
+  }
+
   /* idx[i] = v */
   void testSubscriptAssignment () {
     hx::index<7, 7> idx;

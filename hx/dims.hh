@@ -117,6 +117,24 @@ struct dims {
     }
   }
 
+  /* shift_impl */
+  template<std::size_t i, std::size_t j, std::size_t n,
+           std::size_t D, std::size_t... Ds>
+  static inline constexpr auto shift_impl () {
+    if constexpr (sizeof...(Ds) > 0) {
+      constexpr auto rest = shift_impl<i + 1, j, n, Ds...>();
+      if constexpr (i == j)
+        return hx::dims<D * (1 << n)>{} + rest;
+      else
+        return hx::dims<D>{} + rest;
+    }
+    else {
+      if constexpr (i == j)
+        return hx::dims<D * (1 << n)>{};
+      else
+        return hx::dims<D>{};
+    }
+  }
 
   /* operator+() */
   template<std::size_t... Ds>
@@ -166,6 +184,11 @@ struct dims {
    */
   template<std::size_t idx>
   using exclude = decltype(remove_impl<0, hx::dims<idx>, Dims...>());
+
+  /* shift<idx, n>: shift the idx-th value n times.
+   */
+  template<std::size_t idx, std::size_t n>
+  using shift = decltype(shift_impl<0, idx, n, Dims...>());
 };
 
 /* namespace hx */ }

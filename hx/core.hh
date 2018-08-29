@@ -23,3 +23,5 @@
 #include "fft/blocks.hh"
 #include "fft/transform.hh"
 
+#include "proc/node.hh"
+

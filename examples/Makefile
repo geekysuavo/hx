@@ -2,7 +2,7 @@
 CXX=clang++
 CXXFLAGS=-std=c++17 -Wall -O3 -I..
 
-BIN=ists
+BIN=ists proc
 
 all: $(BIN)
 
