@@ -26,6 +26,11 @@ public:
   using input = typename In::output;
   using output = typename Proc::Out;
 
+  /* link_id: type holding the index of the current node.
+   */
+  using link_id = std::integral_constant<std::size_t,
+                                         In::link_id::value + 1>;
+
   /* node()
    *
    * Constructor for general processing nodes taking an upstream
@@ -44,6 +49,19 @@ public:
     auto out = std::make_unique<output>();
     processor(parent(in), out);
     return std::move(out);
+  }
+
+  /* link<idx>()
+   *
+   * Retrieve a reference to the processor of the current node
+   * or one of its upstream parents, based on its link index.
+   */
+  template<std::size_t idx>
+  auto& link () {
+    if constexpr (idx == link_id::value)
+      return processor;
+    else
+      return parent.template link<idx>();
   }
 
 /* include the set of node extension functions. */
@@ -74,6 +92,11 @@ public:
    */
   using input = In;
   using output = In;
+
+  /* link_id: type holding the index of the current node,
+   *          which is always zero for array-sourced nodes.
+   */
+  using link_id = std::integral_constant<std::size_t, 0>;
 
   /* node()
    *
