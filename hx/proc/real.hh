@@ -18,8 +18,9 @@ struct real {
    */
   using Out = hx::build_array_t<double, hx::array_dims_t<In>>;
 
-  /* apply() */
-  static void apply (std::shared_ptr<In> in, std::shared_ptr<Out> out) {
+  /* operator()() */
+  void operator() (const std::unique_ptr<In>& in,
+                   const std::unique_ptr<Out>& out) const {
     typename Out::index_type idx;
     do {
       (*out)[idx] = (*in)[idx][0];

@@ -4,7 +4,7 @@
 int main () {
   // allocate an array to process.
   using X = hx::array<hx::scalar<1>, 3, 3>;
-  auto x = std::make_shared<X>();
+  auto x = std::make_unique<X>();
 
   // init the input array.
   for (std::size_t i = 0; i < X::shape<0>; i++)
@@ -12,8 +12,8 @@ int main () {
       (*x)[i][j] = { i+1, j+1 };
 
   // build and execute the processing graph.
-  auto p1 = hx::proc::node(x).zerofill().zerofill<1>().real();
-  auto y = p1();
+  auto p = hx::proc::node(x).zerofill().zerofill<1>().real();
+  auto y = p(x);
 
   // print the input array.
   std::cout << "x:\n";

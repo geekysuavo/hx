@@ -24,8 +24,9 @@ struct zerofill {
    */
   using Out = hx::build_array_t<Type, Dims>;
 
-  /* apply() */
-  static void apply (std::shared_ptr<In> in, std::shared_ptr<Out> out) {
+  /* operator()() */
+  void operator() (const std::unique_ptr<In>& in,
+                   const std::unique_ptr<Out>& out) const {
     typename In::index_type idx_in;
     typename Out::index_type idx_out;
     do {
