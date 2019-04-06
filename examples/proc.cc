@@ -12,7 +12,7 @@ int main () {
       (*x)[i][j] = { i+1, j+1 };
 
   // build and execute the processing graph.
-  auto p = hx::proc::node(x).zerofill().zerofill<1>().real();
+  auto p = hx::proc::node(x).zerofill().zerofill<1>().abs();
   auto y = p(x);
 
   // print the input array.

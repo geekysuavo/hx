@@ -1,5 +1,5 @@
 
-/* Copyright (c) 2018 Bradley Worley <geekysuavo@gmail.com>
+/* Copyright (c) 2018, 2019 Bradley Worley <geekysuavo@gmail.com>
  * Released under the MIT License.
  */
 
@@ -7,6 +7,12 @@
  * (i.e. hx::proc::node<...>) with new functions and their
  * ends.
  */
+
+/* abs() */
+constexpr auto abs () const {
+  using ab = hx::proc::abs<output>;
+  return hx::proc::node<node, ab>{*this, ab{}};
+}
 
 /* real() */
 constexpr auto real () const {

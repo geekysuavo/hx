@@ -1,5 +1,5 @@
 
-/* Copyright (c) 2018 Bradley Worley <geekysuavo@gmail.com>
+/* Copyright (c) 2018, 2019 Bradley Worley <geekysuavo@gmail.com>
  * Released under the MIT License.
  */
 
@@ -7,6 +7,7 @@
 
 #include <memory>
 
+#include "abs.hh"
 #include "real.hh"
 #include "zerofill.hh"
 
