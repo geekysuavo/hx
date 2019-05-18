@@ -89,6 +89,19 @@ public:
   /* delete the implicit copy constructor. */
   array (const array& x) = delete;
 
+  /* operator=(scalar)
+   *
+   * Assignment operator from scalar values.
+   */
+  array& operator= (const Type& val) {
+    index_type idx;
+    do {
+      (*this)[idx] = val;
+    }
+    while (idx++);
+    return *this;
+  }
+
   /* operator=(unary)
    *
    * Assignment operator from unary array expressions.
@@ -374,6 +387,17 @@ public:
 
   /* delete the implicit copy constructor. */
   array (const array& x) = delete;
+
+  /* operator=(scalar)
+   *
+   * Assignment operator from scalar values.
+   */
+  array& operator= (const Type& val) {
+    for (std::size_t i = 0; i < Dim; i++) {
+      data[i] = val;
+    }
+    return *this;
+  }
 
   /* operator=(unary)
    *

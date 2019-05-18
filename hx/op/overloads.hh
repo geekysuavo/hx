@@ -52,5 +52,12 @@ auto operator/ (hx::op::binary<type, Ta, Tb> lhs, R rhs) {
   return hx::op::binary<hx::op::divide, decltype(lhs), R>(lhs, rhs);
 }
 
+/* non-array / binary */
+template<hx::op::type type, typename Ta, typename Tb, typename L,
+         typename = std::enable_if_t<!hx::is_array_v<L>>>
+auto operator/ (L lhs, hx::op::binary<type, Ta, Tb> rhs) {
+  return hx::op::binary<hx::op::divide, L, decltype(rhs)>(lhs, rhs);
+}
+
 /* namespace hx::op */ }
 
