@@ -54,6 +54,45 @@ Basic benchmarks show the code generated here to be 3-5x slower than FFTW,
 but considering the amount of work required to implement multicomplex FFTs
 by hand using FFTW, this reduction in speed can be accepted. :)
 
+## Compiler-optimized processing graphs
+
+The broader goal of **hx** is to support the construction of processing
+graphs like this:
+```cpp
+// allocate an array to process.
+using X = hx::array<hx::scalar<1>, 3, 3>;
+auto x = std::make_unique<X>();
+
+// init the array contents...
+
+// build and execute the processing graph.
+auto p = hx::proc::node(x).zerofill().zerofill<1>().abs();
+auto y = p(x);
+```
+
+An interpreted language like Python would then take a script like
+this:
+```python
+import hx
+
+@hx.jit
+def process(x: hx.array) -> hx.array:
+    return (
+        x
+        .zerofill(dim=0)
+        .zerofill(dim=1)
+        .abs()
+    )
+
+def main():
+    x = hx.load("path/to/x.dat")
+    y = process(x)
+
+if __name__ == "__main__":
+    main()
+```
+and write/compile the C++ code with appropriate array sizes.
+
 ## Licensing
 
 The **hx** library is released under the
