@@ -60,7 +60,7 @@ The broader goal of **hx** is to support the construction of processing
 graphs like this:
 ```cpp
 // allocate an array to process.
-using X = hx::array<hx::scalar<1>, 3, 3>;
+using X = hx::array<hx::scalar<2>, 3, 3>;
 auto x = std::make_unique<X>();
 
 // init the array contents (e.g. load from file)...
