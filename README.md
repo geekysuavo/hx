@@ -63,10 +63,14 @@ graphs like this:
 using X = hx::array<hx::scalar<1>, 3, 3>;
 auto x = std::make_unique<X>();
 
-// init the array contents...
+// init the array contents (e.g. load from file)...
 
 // build and execute the processing graph.
-auto p = hx::proc::node(x).zerofill().zerofill<1>().abs();
+auto p = hx::proc::node(x)
+            .zerofill().zerofill<1>()
+            .fft().fft<1>()
+            .real();
+
 auto y = p(x);
 ```
 
@@ -81,7 +85,9 @@ def process(x: hx.array) -> hx.array:
         x
         .zerofill(dim=0)
         .zerofill(dim=1)
-        .abs()
+        .fft(dim=0)
+        .fft(dim=1)
+        .real()
     )
 
 def main():
