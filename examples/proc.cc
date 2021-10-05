@@ -3,16 +3,22 @@
 
 int main () {
   // allocate an array to process.
-  using X = hx::array<hx::scalar<1>, 3, 3>;
+  using X = hx::array<hx::scalar<2>, 3, 3>;
   auto x = std::make_unique<X>();
 
   // init the input array.
   for (std::size_t i = 0; i < X::shape<0>; i++)
     for (std::size_t j = 0; j < X::shape<1>; j++)
-      (*x)[i][j] = { i+1, j+1 };
+      (*x)[i][j] = { { i+1, j+1 }, { 0, i+j, } };
 
   // build and execute the processing graph.
-  auto p = hx::proc::node(x).zerofill().zerofill<1>().abs();
+  auto p = hx::proc::node(x)
+              .zerofill()
+              .zerofill<1>()
+              .fft()
+              .fft<1>()
+              .real();
+
   auto y = p(x);
 
   // print the input array.
